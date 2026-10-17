@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Zero-dependency project: no install step by design (DECISIONS.md ENG-2).
+      - name: Purity & zero-network bans
+        run: node tools/check-bans.js
+      - name: Unit tests (schemas + gate self-tests)
+        run: node --test tests/
+      - name: Spec amendment audit (every change tagged with its decision)
+        run: node tools/audit-amendment.js
+      - name: Content inventory (advisory until Phase 6, --strict at Phase 10)
+        run: node tools/check-inventory.js

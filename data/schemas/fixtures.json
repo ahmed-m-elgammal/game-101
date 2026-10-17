@@ -1,0 +1,101 @@
+{
+  "class": {
+    "id": "ashblade", "name": "Ashblade", "damageType": "steel",
+    "stats": { "vig": 5, "mig": 8, "wit": 2, "grd": 3, "hst": 9 },
+    "verses": ["rend", "opening_cut", "flay", "red_flurry", "drink_deep", "blood_ledger", "duelist_blade", "ashen_edge", "last_word"]
+  },
+  "verse": {
+    "id": "rend", "name": "Rend", "cls": "ashblade", "cost": 2, "cd": 2, "unlockLevel": 1,
+    "effects": [
+      { "op": "damage", "base": 5, "coef": 0.9, "stat": "mig" },
+      { "op": "bleed+", "stacks": 2 }
+    ]
+  },
+  "vow_class": {
+    "id": "red_tide", "name": "Red Tide", "kind": "class", "cls": "ashblade",
+    "effects": [ { "op": "conditional", "note": "Bleed cap 8, Bleed ticks +1" } ]
+  },
+  "vow_story": {
+    "id": "oren's_post", "name": "Oren's Post", "kind": "story", "cls": "any", "source": "ch8_mercy",
+    "effects": [ { "op": "conditional", "note": "While Braced, cannot be Stunned" } ]
+  },
+  "item": {
+    "id": "corvanes_blade", "name": "Corvane's Blade", "slot": "weapon", "affinity": "ashblade",
+    "stats": { "mig": 3 },
+    "mark": [ { "op": "crit_mod", "tiers": [ { "hpAbove": 0.5, "mult": 1.6 }, { "hpAbove": 0.25, "mult": 1.8 }, { "hpAbove": 0, "mult": 2.0 } ] } ],
+    "source": "ch5_ruthless"
+  },
+  "enemy": {
+    "id": "bram", "name": "Hollowed Sexton Bram", "cls": "gravewarden", "level": 1,
+    "alloc": { "vig": 11, "mig": 5, "wit": 2, "grd": 10, "hst": 5 },
+    "hp": 120, "hpOverride": false,
+    "signature": "sepulchral_spikes", "counterLine": "Burst. He has no damage; he has a wall.",
+    "rite": null
+  },
+  "enemy_boss": {
+    "id": "mother_bell", "name": "Mother Bell", "cls": "hybrid", "level": 8,
+    "alloc": { "vig": 13, "mig": 6, "wit": 9, "grd": 15, "hst": 6 },
+    "hp": 300, "hpOverride": true,
+    "signature": "temperature", "counterLine": "DoT, or manage the temperature.",
+    "rite": "temperature"
+  },
+  "rite": {
+    "id": "temperature", "trigger": { "atHP": 0.5 },
+    "change": { "damageType": "shade", "statMults": { "wit": 1.2 }, "versePool": ["crypt_door", "curse", "shade_bolt"] },
+    "line": "The bell cools. It was never empty — it was waiting."
+  },
+  "namedEcho": {
+    "id": "brother_ash", "name": "Brother Ash", "cls": "gravewarden", "level": 8, "toll": 1080,
+    "history": "He has not left the Warrens since the Order closed its doors.",
+    "weakness": "Cannot be debuffed. Relies entirely on regen — DoT beats him.",
+    "recasts": 0
+  },
+  "chapter": {
+    "id": "ch1", "act": 1, "index": 1, "levelBand": ["1", "2"],
+    "duels": ["bram", "sedge"], "choiceId": "ch1_choice", "hasShrine": true
+  },
+  "choice": {
+    "id": "ch1_choice", "chapter": "ch1", "prompt": "The two things you were carrying.",
+    "options": [
+      { "tally": "ruthless", "reward": { "item": "pallbearers_mace" } },
+      { "tally": "mercy", "reward": { "item": "sextons_shroud" } },
+      { "tally": "devotion", "reward": { "item": "grave_shovel_of_bram" } }
+    ]
+  },
+  "objective": {
+    "id": "tally_ch1", "chapter": 1,
+    "text": "End the sexton's digging without your candle's mercy.",
+    "test": "win_without_candle_trigger",
+    "reward": { "xp": 5, "deed": "codex_line" }
+  },
+  "deed": {
+    "id": "the_wax_ran_level", "name": "The Wax Ran Level",
+    "marenLine": "Not a hair of luck either way. You did that.",
+    "unlock": { "type": "win", "fortuneWithin": 0.02 }
+  },
+  "vendorEntry": { "item": "choir_scale_blade", "costMemories": 1, "restock": false },
+  "saveState": {
+    "version": 1,
+    "run": { "chapter": 3, "level": 4, "xp": 285, "tallies": { "mercy": 1, "ruthless": 1, "devotion": 1 }, "memoriesSold": [] },
+    "loadouts": [ { "name": "primary", "verses": ["rend", "opening_cut", "flay", "steady_breath"] } ],
+    "floor": { "toll": 1000, "bound": false, "ward": true },
+    "settings": { "countersOptIn": false }
+  },
+  "echoCode_v1": {
+    "v": 1, "name": "Mourne", "cls": "hollow_cantor", "level": 7,
+    "alloc": { "vig": 3, "mig": 0, "wit": 9, "grd": 1, "hst": 3 },
+    "vow": "silence",
+    "verses": ["tolling_bell", "dirge", "requiem", "dissonance"],
+    "gear": { "weapon": "tuning_fork", "vestment": "drowned_mantle", "relic": "deaf_wax" },
+    "doctrine": "bulwark"
+  },
+  "echoCode_v2": {
+    "v": 2, "name": "Mourne", "cls": "hollow_cantor", "level": 7,
+    "alloc": { "vig": 3, "mig": 0, "wit": 9, "grd": 1, "hst": 3 },
+    "vow": "silence",
+    "verses": ["tolling_bell", "dirge", "requiem", "dissonance"],
+    "gear": { "weapon": "tuning_fork", "vestment": "drowned_mantle", "relic": "deaf_wax" },
+    "doctrine": "bulwark", "rite": null,
+    "tally": { "mercy": 3, "ruthless": 2, "devotion": 4 }
+  }
+}

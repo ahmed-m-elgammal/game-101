@@ -1,0 +1,19 @@
+{
+  "name": "the-ashen-choir",
+  "version": "0.1.0",
+  "description": "The Ashen Choir — a build-driven, text-carried duel RPG with a deterministic async PvP ladder. Phase 0 baseline: decisions, schemas, scaffold. No game code yet (TASKS.md T0.1–T0.5 done; Phase 1 next).",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\"",
+    "ci": "npm run bans && npm run test && npm run inventory",
+    "bans": "node tools/check-bans.js",
+    "audit:amendment": "node tools/audit-amendment.js",
+    "inventory": "node tools/check-inventory.js",
+    "inventory:strict": "node tools/check-inventory.js --strict"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

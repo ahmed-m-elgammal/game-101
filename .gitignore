@@ -1,0 +1,17 @@
+# dependencies / build
+node_modules/
+dist/
+coverage/
+
+# env / secrets — tokens NEVER live in this repo
+.env
+.env.*
+*.pem
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# The Ashen Choir: engine/, data/, story/, rng/, sim/, ui/, store/ are tracked.
+# assets/ binaries are tracked (self-hosted, ~1.9 MB total when Phase 8 lands).
