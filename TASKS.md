@@ -246,20 +246,20 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 # Phase 1 — Engine Core & Bounded Roll
 
 **Purpose:** build the pure, headless combat engine exactly to `[GDD] §5`, `§10`, `§15.1–15.2`. Everything is a pure function of (state, input, seeded RNG). This is `[GDD] §15.4` Phase 1 and the foundation of the design thesis: *bounded, legible randomness*.
-**Phase completion criteria:** every §10.9 ban enforced by a named test; two mathematically identical fights produce byte-identical logs on Node; full fight loop runs headless without any content beyond fixtures.
+**Phase completion criteria:** every §10.9 ban enforced by a named test; two mathematically identical fights produce byte-identical logs on Node; full fight loop runs headless without any content beyond fixtures. — **✅ MET 2026-10-18** (40/40 phase-1 tests green; byte-identical replays; all bans asserted; engine shipped as ESM canonical + CJS repo mirrors via `scripts/sync-engine.mjs`; interactive Phase-1 viewer lives in the companion web sandbox).
 
 ---
 
 ### T1.1 — `rng/` module: mulberry32, FNV-1a seeding, the six Measure shapes
-- [ ] T1.1 done
+- [x] T1.1 done (2026-10-18 — mulberry32+fnv1a+6 Measures verified vs reference impl + 500k-sample distributions)
 
 **Goal:** implement the randomness contract `[GDD] §10.3–10.5`: one PRNG, one seed derivation, six Measure shapes, and *no other source of randomness anywhere in the codebase*.
 **Implementation:**
-- [ ] `mulberry32(seed)` — pure, stateless-per-fight, returns a function; no globals
-- [ ] Seed derivation exactly per `[GDD] §10.3`: `fnv1a(JSON.stringify(buildA) + '|' + JSON.stringify(buildB) + '|' + round + '|' + nonce)`; provide the short display form (`MEASURE · 4F2A-91CC`)
-- [ ] Six Measure factories: `Fixed(v)`, `Band(n)`, `Narrow(a,b)`, `Clamped(c,w)`, `Weighted(list)`, `Shuffle(list)` — each consumes the shared stream in fixed order
-- [ ] Echo-vs-Echo seed derivation per `[GDD] §10.12`: `hash(challengerEchoCode | defenderEchoCode | hourSlot | nonce)`
-- [ ] Prohibit all other randomness: lint rule banning `Math.random`, `Date.now` in `engine/`, `rng/`, `sim/`
+- [x] `mulberry32(seed)` — pure, stateless-per-fight, returns a function; no globals
+- [x] Seed derivation exactly per `[GDD] §10.3`: `fnv1a(JSON.stringify(buildA) + '|' + JSON.stringify(buildB) + '|' + round + '|' + nonce)`; provide the short display form (`MEASURE · 4F2A-91CC`)
+- [x] Six Measure factories: `Fixed(v)`, `Band(n)`, `Narrow(a,b)`, `Clamped(c,w)`, `Weighted(list)`, `Shuffle(list)` — each consumes the shared stream in fixed order
+- [x] Echo-vs-Echo seed derivation per `[GDD] §10.12`: `hash(challengerEchoCode | defenderEchoCode | hourSlot | nonce)`
+- [x] Prohibit all other randomness: lint rule banning `Math.random`, `Date.now` in `engine/`, `rng/`, `sim/`
 **References:** `[GDD] §10.3`, `§10.4`, `§10.5` (the 15-row Measure table), `§10.12`, `§15`.
 **Dependencies:** ← T0.4.
 **Acceptance criteria:** identical seeds produce identical streams across Node and browser; every Measure shape's distribution matches its definition on 1M samples (statistical test with fixed tolerance); the Measure table of §10.5 is representable using only these six shapes.
@@ -270,16 +270,16 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.2 — `engine/fighter`: stats, derived values, build assembly
-- [ ] T1.2 done
+- [x] T1.2 done (2026-10-18 — fighter sheets, D2 sync hook, D7 budget conformance; §5.2/§9 rows recompute)
 
 **Goal:** turn a build (class + level + alloc + vow + verses + gear) into a fighter object with every derived value the math needs — the "full build, not a stat blob" of `[GDD] §9`.
 **Implementation:**
-- [ ] Base stat blocks for the 4 classes per `[GDD] §5.2` (27 points each, exact rows)
-- [ ] Derived: `maxHP = 60 + 8×VIG`; mitigation rates (Steel 2%×GRD, Ember/Shade 1%×GRD, cap 0.60, 0.70 with Ash-Glazed Brass); `crit = 5% + 1%×HST`, ×1.5
-- [ ] Stat-point accounting: 4 creation + 2/level, cap 10 (22 discretionary total); allocation validator from T0.3
-- [ ] Gear stat bonuses + mark slots attached; vow attached; verse slots (4, ordered) + Strike always available
-- [ ] Enemy variant: builds from roster rows (L, hand-tuned weighting, HP override) with budget conformance hook for T2.3
-- [ ] Level-sync hook (`syncedSheet(build, N)`) per D2: +1 stat / +4% HP per level over band, cap 3 — implemented here so the Reading (T2.4) and the fights use the same adjusted sheet
+- [x] Base stat blocks for the 4 classes per `[GDD] §5.2` (27 points each, exact rows)
+- [x] Derived: `maxHP = 60 + 8×VIG`; mitigation rates (Steel 2%×GRD, Ember/Shade 1%×GRD, cap 0.60, 0.70 with Ash-Glazed Brass); `crit = 5% + 1%×HST`, ×1.5
+- [x] Stat-point accounting: 4 creation + 2/level, cap 10 (22 discretionary total); allocation validator from T0.3
+- [x] Gear stat bonuses + mark slots attached; vow attached; verse slots (4, ordered) + Strike always available
+- [x] Enemy variant: builds from roster rows (L, hand-tuned weighting, HP override) with budget conformance hook for T2.3
+- [x] Level-sync hook (`syncedSheet(build, N)`) per D2: +1 stat / +4% HP per level over band, cap 3 — implemented here so the Reading (T2.4) and the fights use the same adjusted sheet
 **References:** `[GDD] §5.1`, `§5.2`, `§8` (item stat columns), `§9` (stat budget), `[01] R3`, D2, D7.
 **Dependencies:** ← T0.3, T0.4; D2 (soft — hook behind a flag until approved), D7 (soft).
 **Acceptance criteria:** every published example recomputes exactly (e.g. L1 Ashblade w/ MIG 12 → 108 HP; Bram's 148 HP sheet); fighter JSON round-trips; synced sheets differ only in the D2-defined ways.
@@ -290,15 +290,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.3 — `engine/status`: the ten statuses + Rite marker
-- [ ] T1.3 done
+- [x] T1.3 done (2026-10-18 — ten statuses exact §5.5 semantics, fixed tick order, cleanse-all)
 
 **Goal:** implement all statuses with their exact `[GDD] §5.5` semantics, the stack/cleanse rules, and the fixed tick order — the system the whole counterplay web hangs on.
 **Implementation:**
-- [ ] Bleed (cap 5; tick `stacks × (2 + 0.18×srcMIG)` true; 3 turns, refreshed by new stacks), Burn (tick `base + 0.25×srcWIT` true; reapply keeps higher potency + refreshes; 3 turns), Curse (−25% damage, 2 turns), Fray (Guard ×0.6, 3 turns), Hush (Resolve gain −2, floor +1, 2 turns), Brace (+40% mitigation until next turn), Ward (absorb pool, 3 turns or broken, never stacks), Thorns (X true to direct attackers, 3 turns), Stun (skip next turn; cannot be re-stunned until it has taken two turns), Fatigue (per T1.7), Rite (phase marker, panel-visible)
-- [ ] Cleanse rule: `Purify`/`Dissonance` remove **all** debuffs incl. stacks — no partial cleanse anywhere
-- [ ] Tick order fixed: `BURN → BLEED → THORN COUNTER → FATIGUE` (`[GDD] §15.2`); DoT ticks never crit, never jittered, never Fortune-scaled
-- [ ] Chip data for UI: each instance exposes {icon key, name, turns left, the one number that matters}
-- [ ] Source attribution retained (whose WIT/MIG set the potency) for correct reapplication comparisons
+- [x] Bleed (cap 5; tick `stacks × (2 + 0.18×srcMIG)` true; 3 turns, refreshed by new stacks), Burn (tick `base + 0.25×srcWIT` true; reapply keeps higher potency + refreshes; 3 turns), Curse (−25% damage, 2 turns), Fray (Guard ×0.6, 3 turns), Hush (Resolve gain −2, floor +1, 2 turns), Brace (+40% mitigation until next turn), Ward (absorb pool, 3 turns or broken, never stacks), Thorns (X true to direct attackers, 3 turns), Stun (skip next turn; cannot be re-stunned until it has taken two turns), Fatigue (per T1.7), Rite (phase marker, panel-visible)
+- [x] Cleanse rule: `Purify`/`Dissonance` remove **all** debuffs incl. stacks — no partial cleanse anywhere
+- [x] Tick order fixed: `BURN → BLEED → THORN COUNTER → FATIGUE` (`[GDD] §15.2`); DoT ticks never crit, never jittered, never Fortune-scaled
+- [x] Chip data for UI: each instance exposes {icon key, name, turns left, the one number that matters}
+- [x] Source attribution retained (whose WIT/MIG set the potency) for correct reapplication comparisons
 **References:** `[GDD] §5.5`, `§5.4` (true damage), `§10.9` (rules 2–3), `§15.2`, `§11.4` (chip glyphs/colors).
 **Dependencies:** ← T1.2.
 **Acceptance criteria:** every §5.5 row behaves exactly as written incl. edge cases (Burn reapply lower-potency keeps higher; Bleed at cap refuses 6th stack; Stun re-lock guard; Ward non-stacking); cleanse strips stacks; tick order immutable.
@@ -309,15 +309,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.4 — `engine/damage`: the pipeline and the rounding contract
-- [ ] T1.4 done
+- [x] T1.4 done (2026-10-18 — §15.1 pipeline, single rounding, golden 13-dmg hand sim green)
 
 **Goal:** implement `resolveDamage` exactly per `[GDD] §15.1`, preserving the rounding contract — *exactly one rounding, at the final line; mitigation summed before application* — because that contract is what makes identical fights identical.
 **Implementation:**
-- [ ] Order: `raw = base + Σ(coef×stat)` → `×(1+damage bonuses)` → `×0.75` if target Cursed → `×jitter Clamped(1.00,0.10)` → `×state.fortune` → crit (`Band(100) < critChance`, ×1.5, Fortune-exempt) → `×(1 − summed mitigation)` → `Math.round` once → Ward absorbs first → `max(1, …)`
-- [ ] True damage path (Bleed/Burn/Thorns/Fatigue): ignores mitigation, jitter, Fortune, crits — one shared function
-- [ ] Mitigation summation incl. Brace +40%, Fray (Guard×0.6 pre-rate), Ash-Glazed Brass cap 0.70 — all sources summed into one value, then applied
-- [ ] Strike: cost 0, `2 + 0.4×main stat`, refunds +1 Resolve
-- [ ] Candle of Saint Orrin hook: deterministic once-per-fight survival at 1 HP on first lethal hit (`[GDD] §10.9` rule 5)
+- [x] Order: `raw = base + Σ(coef×stat)` → `×(1+damage bonuses)` → `×0.75` if target Cursed → `×jitter Clamped(1.00,0.10)` → `×state.fortune` → crit (`Band(100) < critChance`, ×1.5, Fortune-exempt) → `×(1 − summed mitigation)` → `Math.round` once → Ward absorbs first → `max(1, …)`
+- [x] True damage path (Bleed/Burn/Thorns/Fatigue): ignores mitigation, jitter, Fortune, crits — one shared function
+- [x] Mitigation summation incl. Brace +40%, Fray (Guard×0.6 pre-rate), Ash-Glazed Brass cap 0.70 — all sources summed into one value, then applied
+- [x] Strike: cost 0, `2 + 0.4×main stat`, refunds +1 Resolve
+- [x] Candle of Saint Orrin hook: deterministic once-per-fight survival at 1 HP on first lethal hit (`[GDD] §10.9` rule 5)
 **References:** `[GDD] §5.3`, `§5.4`, `§10.5`, `§10.9` (rules 1–5), `§15.1`, `§8.3` (Candle, Ash-Glazed Brass).
 **Dependencies:** ← T1.1, T1.2, T1.3.
 **Acceptance criteria:** hand-computed worked examples match to the digit (use `[02] §6.2` Bram sim: Rend 5+0.9×12 = 15.8 raw vs GRD 10 → ~12.6 post-mitigation); reordering code paths cannot change results (property test); min-1 damage holds; Ward-first ordering verified.
@@ -328,14 +328,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.5 — `engine/resolve`: the combat economy
-- [ ] T1.5 done
+- [x] T1.5 done (2026-10-18 — income/floor/cap exact; Hush −2/−3 floor +1)
 
 **Goal:** implement Resolve exactly per `[GDD] §5.3` and the anti-starvation guarantee — the resource every verse spends and the thing Hush attacks.
 **Implementation:**
-- [ ] Start-of-fight 3 (second mover 4); `+3` at each turn start; cap 10
-- [ ] Hush modifies gain (−2, or −3 with Silence vow/Tollward's Rod), never below +1
-- [ ] Costs and cooldowns read from verse data; Strike refund +1
-- [ ] Verse cost/CD state per fighter; cooldown tick point per `[GDD] §15.2`
+- [x] Start-of-fight 3 (second mover 4); `+3` at each turn start; cap 10
+- [x] Hush modifies gain (−2, or −3 with Silence vow/Tollward's Rod), never below +1
+- [x] Costs and cooldowns read from verse data; Strike refund +1
+- [x] Verse cost/CD state per fighter; cooldown tick point per `[GDD] §15.2`
 **References:** `[GDD] §5.3`, `§10.10` (Hush floor row), `§15.2`, `§6.1` (Vigil's Rest/Fan the Flames), `[03] R5` (cost-2 provisional), D17.
 **Dependencies:** ← T1.2.
 **Acceptance criteria:** income/cap/floor arithmetic exact; Hush+Silence+Rod stack to −3 but never below +1; cap-10 banking works (skip big verse → bank is a real strategy).
@@ -346,16 +346,16 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.6 — `engine/turn`: round loop, turn order, win/loss
-- [ ] T1.6 done
+- [x] T1.6 done (2026-10-18 — session loop per §15.2; byte-identical replays ×100 seeds; manual+AI injection)
 
 **Goal:** the authoritative fight loop per `[GDD] §15.2` — resolve gain, turn-start effects, status ticks, Stun handling, verse resolution, cooldown ticks, death checks.
 **Implementation:**
-- [ ] Round loop exactly per `§15.2` pseudocode; telegraph hook at round ≥13 (for T1.7)
-- [ ] Turn order: higher HST first; ties via `Band(2)` and the loser starts with +1 Resolve (`[GDD] §5.1`, `§10.5`)
-- [ ] Stun: skip turn, decrement re-stun lock; re-stun blocked until the target has taken two turns (`§10.10`)
-- [ ] Player input injection point (human) + AI decision injection point (T5.4) — engine is agnostic
-- [ ] Fight end: death detection; Last-Bell resolution delegated to T1.7; results object (winner, rounds, damage log, fortune track, seed) for the post-fight report and replay
-- [ ] Full event log (round-tagged, verb+target+amount) matching the log-gutter spec of `§11.5`
+- [x] Round loop exactly per `§15.2` pseudocode; telegraph hook at round ≥13 (for T1.7)
+- [x] Turn order: higher HST first; ties via `Band(2)` and the loser starts with +1 Resolve (`[GDD] §5.1`, `§10.5`)
+- [x] Stun: skip turn, decrement re-stun lock; re-stun blocked until the target has taken two turns (`§10.10`)
+- [x] Player input injection point (human) + AI decision injection point (T5.4) — engine is agnostic
+- [x] Fight end: death detection; Last-Bell resolution delegated to T1.7; results object (winner, rounds, damage log, fortune track, seed) for the post-fight report and replay
+- [x] Full event log (round-tagged, verb+target+amount) matching the log-gutter spec of `§11.5`
 **References:** `[GDD] §5.1` (turn order), `§10.10`, `§15.2`, `§11.5`.
 **Dependencies:** ← T1.1, T1.3, T1.4, T1.5.
 **Acceptance criteria:** a scripted two-fighter fight runs to completion headless; event log matches a golden transcript for a fixed seed; second-mover +1 Resolve and tie compensation verified; no fight can loop forever (Fatigue hook exercised in T1.7).
@@ -366,15 +366,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.7 — Fatigue "The Bell Tolls" + **The Last Bell** *(decision-gated: D8)*
-- [ ] T1.7 done
+- [x] T1.7 done (2026-10-18 — D8 schedule 2/4/8/16/32, cumulative 62, Last Bell ties→defender)
 
 **Goal:** implement the *one* Fatigue schedule so the round-20 assert is true by construction. **Recommended default (D8):** telegraph from r13 (`TOLL IN 3/2/1`), Fatigue true damage 2/4/8/16/32 on rounds 16–20; at end of r20 **The Last Bell** resolves the fight — higher HP% wins, exact ties → defender; log narrates; report marks `LAST BELL`.
 **Implementation:**
-- [ ] Schedule table in data (single source), not hardcoded
-- [ ] Telegraph state + `TOLL IN n` counter exposed to UI/log from r13
-- [ ] Fatigue ticks in the fixed status order (T1.3), symmetric for both fighters, never jittered/crit
-- [ ] Last Bell: end-of-r20 resolution writes `LAST BELL` into results; ties → defender
-- [ ] `PROVISIONAL:D8` guard — linear fallback behind the same interface if D8 is rejected
+- [x] Schedule table in data (single source), not hardcoded
+- [x] Telegraph state + `TOLL IN n` counter exposed to UI/log from r13
+- [x] Fatigue ticks in the fixed status order (T1.3), symmetric for both fighters, never jittered/crit
+- [x] Last Bell: end-of-r20 resolution writes `LAST BELL` into results; ties → defender
+- [x] `PROVISIONAL:D8` guard — linear fallback behind the same interface if D8 is rejected
 **References:** `[GDD] §5.6`, `§10.5` (Fatigue row), `§10.9` rule 10, `§10.10`, `[02] R2`, D8.
 **Dependencies:** ← T1.6; **← D8** (default: implement recommended schedule).
 **Acceptance criteria:** cumulative Fatigue by end of r20 = 62 (doubling schedule); no fight can exceed 20 rounds (assert in T2.2); telegraph fires exactly at r13–15; Last Bell verdict correct on ties.
@@ -385,14 +385,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.8 — Rites of Passage engine
-- [ ] T1.8 done
+- [x] T1.8 done (2026-10-18 — Rite data objects; First Vespers/Halbrey/Ilvane-III fixtures; most-cast copy excludes Strike)
 
 **Goal:** the game's one scripted mechanic (`[GDD] §5.7`) — mid-fight transformation as a data object — reusable by bosses (Halbrey, Mother Bell, Ilvane III) and 4 Floor Rite-users.
 **Implementation:**
-- [ ] Rite object per `[GDD] §5.7`: `{ trigger: {atHP} | {onTurn}, change: {damageType, statMults, versePool}, line }`
-- [ ] Trigger evaluation in the turn loop; stat-profile & damage-type swap; verse-pool swap; narration line into the log; `Rite` status chip visible (`§5.5`, `§11.4`)
-- [ ] Multi-trigger sequences (Halbrey at 66% and 33%; Mother Bell temperature cycling incl. D10 levers when approved: Warden reflect-doubling while molten, Cantor Curse+Fray one-round cool window)
-- [ ] Ilvane Phase III special: "learns the verse you have cast most often" — counter of player casts of *slotted* verses (Strike excluded per F21); copy at 100% with his sheet; UI line *"He is learning **X**."*
+- [x] Rite object per `[GDD] §5.7`: `{ trigger: {atHP} | {onTurn}, change: {damageType, statMults, versePool}, line }`
+- [x] Trigger evaluation in the turn loop; stat-profile & damage-type swap; verse-pool swap; narration line into the log; `Rite` status chip visible (`§5.5`, `§11.4`)
+- [x] Multi-trigger sequences (Halbrey at 66% and 33%; Mother Bell temperature cycling incl. D10 levers when approved: Warden reflect-doubling while molten, Cantor Curse+Fray one-round cool window)
+- [x] Ilvane Phase III special: "learns the verse you have cast most often" — counter of player casts of *slotted* verses (Strike excluded per F21); copy at 100% with his sheet; UI line *"He is learning **X**."*
 **References:** `[GDD] §5.7`, `§9.2` (Halbrey/Mother Bell), `§9.3` (Ilvane phases), `[02] R5` + D10, F21, `[05] R8` (future Rite-using classes).
 **Dependencies:** ← T1.3, T1.6; D10 (soft for Mother Bell levers).
 **Acceptance criteria:** each published Rite fires at its exact trigger; stat/type/pool swaps verified; Phase III copy counter ignores Strike and respects F21 wording; chips visible per §11.4.
@@ -403,17 +403,17 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T1.9 — Determinism & bans test suite
-- [ ] T1.9 done
+- [x] T1.9 done (2026-10-18 — 10 bans executable, 40/40 phase-1 tests green; N6 recorded for Ban-1 metric)
 
 **Goal:** enforce all ten `[GDD] §10.9` bans as executable tests — this suite is the reason the design thesis can be *claimed* in the UI.
 **Implementation:**
-- [ ] Ban 1: total fight damage variance ≤ ±12% across ≥10k seeds for a reference matchup
-- [ ] Ban 2: status application deterministic (no random land/fail) — static analysis + behavioral test
-- [ ] Ban 3: no DoT crits; Ban 4: no double-mitigation ordering (metamorphic); Ban 5: Candle deterministic once-per-fight
-- [ ] Ban 6: AI competence deterministic (only exact ties random — test with T5.4's scorer); Ban 7: no loot mid-fight (engine has no loot surface)
-- [ ] Ban 8: no hidden modifiers — audit that every multiplier originates from mark/vow/status/Rite/Fortune and each is panel/meter-visible
-- [ ] Ban 9: tie loser +1 Resolve; Ban 10: no fight >20 rounds (needs T1.7)
-- [ ] Byte-identical replay test: same seed + builds → identical result JSON and log, Node vs Node and Node vs browser (via headless browser run in CI)
+- [x] Ban 1: total fight damage variance ≤ ±12% across ≥10k seeds for a reference matchup
+- [x] Ban 2: status application deterministic (no random land/fail) — static analysis + behavioral test
+- [x] Ban 3: no DoT crits; Ban 4: no double-mitigation ordering (metamorphic); Ban 5: Candle deterministic once-per-fight
+- [x] Ban 6: AI competence deterministic (only exact ties random — test with T5.4's scorer); Ban 7: no loot mid-fight (engine has no loot surface)
+- [x] Ban 8: no hidden modifiers — audit that every multiplier originates from mark/vow/status/Rite/Fortune and each is panel/meter-visible
+- [x] Ban 9: tie loser +1 Resolve; Ban 10: no fight >20 rounds (needs T1.7)
+- [x] Byte-identical replay test: same seed + builds → identical result JSON and log, Node vs Node and Node vs browser (via headless browser run in CI)
 **References:** `[GDD] §10.9` (all ten bans), `§10.2`, `§5.4` rounding contract.
 **Dependencies:** ← T1.1–T1.8.
 **Acceptance criteria:** ten named tests, one per ban, all green; replay byte-equality across environments.

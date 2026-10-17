@@ -12,7 +12,7 @@ const DAMAGE_TYPES = ['steel', 'ember', 'shade', 'true'];
 // Effect op-codes: the full vocabulary every verse/vow/mark compiles to (T0.3).
 const OPCODES = [
   'damage', 'bleed+', 'burn', 'curse', 'fray', 'hush', 'brace', 'ward', 'thorns',
-  'stun', 'heal', 'resolve', 'cleanse', 'mitigation_mod', 'crit_mod', 'dot_mod',
+  'stun', 'heal', 'resolve', 'cleanse', 'mitigation_mod', 'crit_mod', 'dot_mod', 'selfTrue',
   'conditional', 'once_per_fight',
 ];
 
