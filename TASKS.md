@@ -1,7 +1,7 @@
 # TASKS.md — The Ashen Choir: Development Roadmap
 
 **Project:** The Ashen Choir — a build-driven, text-carried duel RPG with a deterministic async PvP ladder (the Choir Floor).
-**Document status:** v1.0 roadmap · generated 2026-10-18 from the design corpus below · **Phase 0 EXECUTED 2026-10-18** (T0.1–T0.5 done; decisions recorded in `docs/DECISIONS.md`; baseline spec `THE-ASHEN-CHOIR-v1.0.1.md`; schemas, scaffold + CI live) · **Phases 0–2 RE-TESTED 2026-10-18** (N8 in DECISIONS.md: 1,078 new adversarial tests across 7 suites, 9 confirmed bugs found and fixed — vow source-routing, crit-threshold float inflation, Ilvane learn legality/tie-break, preset unlock legality, validator/Reading crash hardening; full suite 1,145/1,145) · remaining tasks unchecked (`- [ ]`) · nothing here changes canon — it sequences it.
+**Document status:** v1.0 roadmap · generated 2026-10-18 from the design corpus below · **Phase 0 EXECUTED 2026-10-18** (T0.1–T0.5 done; decisions recorded in `docs/DECISIONS.md`; baseline spec `THE-ASHEN-CHOIR-v1.0.1.md`; schemas, scaffold + CI live) · **Phases 0–2 RE-TESTED 2026-10-18** (N8 in DECISIONS.md: 1,078 new adversarial tests across 7 suites, 9 confirmed bugs found and fixed — vow source-routing, crit-threshold float inflation, Ilvane learn legality/tie-break, preset unlock legality, validator/Reading crash hardening; full suite 1,145/1,145) · **Phase 5a EXECUTED 2026-10-18** (T5.1–T5.4 done: build assembly/validation + canonical serialization, the Hymnal's loadout logic + Reshape Ledger, the Twin Ledger (D3), the Echo-AI shared rules with the honest visible-state boundary and the shared expected-damage estimator; 1,373/1,373) · remaining tasks unchecked (`- [ ]`) · nothing here changes canon — it sequences it.
 **Implementer model:** every task is written to be handed to Codex (or any engineer) individually, without guessing. Where a task touches an unresolved design decision, the task says so, names the decision ID, and states the recommended default. **Do not implement the decided portion of a blocked task until the decision is recorded as approved** in `docs/DECISIONS.md` (created by T0.1).
 
 ---
@@ -986,20 +986,21 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 # Phase 5 — Loadout, Reshaping & Echo AI
 
+> **Progress (2026-10-18, first pass):** T5.1–T5.4 COMPLETE — `engine/build.js` (the one validator + canonical serialization), `store/loadout.js` (the Hymnal's logic layer + the append-only Reshape Ledger), `store/twin-ledger.js` (D3's second slot), and the rewritten `engine/ai.js` (the §12.3 shared rules behind the unchanged Phase-1 interface, with the honest `visibleOf()` boundary and the shared `expectedDirectDamage` estimator; the T4.5 Rites-of-Passage activation trigger wired). T5.5–T5.8 remain (doctrines, honesty suite hardening, enemy scripting, Corvane integration). Full suite 1,373/1,373; all CI gates green.
+
 **Purpose:** `[GDD] §15.4` Phase 3's systems half — "any build can be assembled and sent to fight." Build assembly + the Hymnal's logic layer, the Twin Ledger, the Echo AI with its honesty rules, the four doctrines, and enemy AI scripting.
 **Phase completion criteria:** any legal build assembles from data and fights under all four doctrines; AI honesty tests green; every enemy signature verb plays correctly under AI control.
 
 ---
 
 ### T5.1 — Build assembly & validation
-- [ ] T5.1 done
-
+- [x] T5.1 done (2026-10-18 — `engine/build.js` + `data/doctrines.js`; 24 tests in `tests/phase5-build.test.js`)
 **Goal:** the single function that turns (class, level, alloc, vow, 4 ordered verses, 3 gear, doctrine) into a validated fighter — used by creation, the Hymnal, Echo Codes, and every harness profile. One validator, everywhere.
 **Implementation:**
-- [ ] Legality: level 1–10; alloc ≤ `4 + 2×(level−1)` (and N1: the validator stays strict); verse unlock + class/common legality; vow class/story-state legality; gear ids exist; doctrine exists
-- [ ] Ordered verse slots (priority semantics); Strike implicit
-- [ ] Story-state parameter: which story vows are earned this run (injected by campaign state)
-- [ ] Canonical serialization (stable key order) — the string the RNG seeds from and the Echo Code encodes
+- [x] Legality: level 1–10; alloc ≤ `4 + 2×(level−1)` (and N1: the validator stays strict); verse unlock + class/common legality; vow class/story-state legality; gear ids exist; doctrine exists (2026-10-18 — 22 stable reason codes (CLASS_UNKNOWN … NAME_TYPE), each fired by a dedicated negative; alloc is EXACT-total: over-cap = ALLOC_OVER (N1 message verbatim), under-spend = ALLOC_SHORTFALL — points are granted, never banked (the Phase-1 validateAlloc contract; §12.6's "≤" is the shape layer's defensive phrasing, recorded in DECISIONS.md); story vows bind their class too (§12.6 "available to that class and story-state"); GEAR_DUP is unreachable by slot shape and was not invented)
+- [x] Ordered verse slots (priority semantics); Strike implicit (2026-10-18 — order preserved verbatim, never sorted; 'strike' slotted → VERSE_STRIKE_IMPLICIT; >4 → VERSE_SLOT_LIMIT; the creation/levelUps split is deterministic: creation fills first in STAT_KEYS order)
+- [x] Story-state parameter: which story vows are earned this run (injected by campaign state) (2026-10-18 — `storyState: [ids]`; VOW_STORY_LOCKED when absent; the hidden vow (Counter-Voice) additionally requires `allowHiddenVow` (§7.2 "excluded from every picker") — the Unmake path (T8.x) opts in explicitly)
+- [x] Canonical serialization (stable key order) — the string the RNG seeds from and the Echo Code encodes (2026-10-18 — `canonicalBuild`/`serializeBuild`: golden string pinned; key-order independent; slot order meaningful (different order = different string); canonical form feeds deriveSeed so two key orders of one loadout seed identically; illegal builds throw naming their codes)
 **References:** `[GDD] §12.6` (validation list), `§12.1`, `§6` (priority order), N1.
 **Dependencies:** ← T4.1–T4.5, T0.3.
 **Acceptance criteria:** rejects every illegal combination with a specific reason code; canonical form stable across runs (golden strings); used by T7.1/T2.1 with zero divergence.
@@ -1010,14 +1011,13 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T5.2 — Hymnal logic: slots, reshaping, Reshape Ledger
-- [ ] T5.2 done
-
+- [x] T5.2 done (2026-10-18 — `store/loadout.js`; 20 tests in `tests/phase5-loadout.test.js` shared with T5.3)
 **Goal:** the loadout logic of `[GDD] §13`/`§14.4`: free re-slotting, vow swap, stat reassignment at shrines/arena-bouts; every reshape recorded with timestamp and before/after; one-click rewind; the bound Echo changes only on re-bind.
 **Implementation:**
-- [ ] Reshape modes: at any shrine (campaign) or between Floor bouts; free, unlimited
-- [ ] Reshape Ledger: append-only entries {timestamp, before, after}; rewind to any entry
-- [ ] Re-bind gate: Floor Echo updates only on explicit re-bind
-- [ ] Creation-time respec promise hook (used by T8.1 presets)
+- [x] Reshape modes: at any shrine (campaign) or between Floor bouts; free, unlimited (2026-10-18 — contexts 'shrine' | 'floor-bout' (+ the unbound 'creation' window); refused reshapes record nothing and the loadout is untouched; patches may not rewrite class/level identity; every merged loadout re-assembles through T5.1 so the Hymnal can never hold an illegal build)
+- [x] Reshape Ledger: append-only entries {timestamp, before, after}; rewind to any entry (2026-10-18 — rewind restores the entry's before-state byte-identically (JSON equality pinned), is itself recorded, guards unknown seq / wrong slot / non-restorable kinds (a swap's wrapper) / closed contexts; timestamps via injected clock — absent clock keeps saves byte-stable)
+- [x] Re-bind gate: Floor Echo updates only on explicit re-bind (2026-10-18 — `bindEcho` is the ONLY writer of `bound`; reshapes + swaps never move it; state test green from both the T5.2 and T5.3 sides)
+- [x] Creation-time respec promise hook (used by T8.1 presets) (2026-10-18 — the 'creation' context is open exactly while nothing is bound; presets reshape freely pre-bind; after binding the error names the doors)
 **References:** `[GDD] §13` (Reshaping, Reshape Ledger, Shrines), `§14.4`, `[01] §1.5` (protect list).
 **Dependencies:** ← T5.1.
 **Acceptance criteria:** rewind restores byte-identical loadouts; bound Echo divergence only via re-bind (state test); ledger survives save/load (T9.1).
@@ -1028,13 +1028,12 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T5.3 — The Twin Ledger *(decision-gated: D3)*
-- [ ] T5.3 done
-
+- [x] T5.3 done (2026-10-18 — `store/twin-ledger.js`; D3 APPROVED so the fallback was correctly NOT built)
 **Goal:** the Ch3-Devotion replacement reward per `[01] R4`: a second saved loadout, swappable free at shrines *and* on the pre-fight Reading screen, Floor-compatible (Echo binds whichever is active), available after the ending.
 **Implementation:**
-- [ ] Loadout slots: 1 by default; 2 with the Twin Ledger flag; swap UI points wired (shrine + Reading screen)
-- [ ] Floor re-bind semantics with two loadouts; post-ending availability
-- [ ] `PROVISIONAL:D3` fallback if rejected: once-per-fight Act II re-slot variant specced in `[01] R4` — do not build without a decision
+- [x] Loadout slots: 1 by default; 2 with the Twin Ledger flag; swap UI points wired (shrine + Reading screen) (2026-10-18 — `earnTwinLedger` grants exactly once (double-grant refused), the second slot starts as a legal copy; `swapLoadout` accepts only 'shrine' | 'reading' — mid-fight/context-free refused; unearned swaps name the reward)
+- [x] Floor re-bind semantics with two loadouts; post-ending availability (2026-10-18 — a swap never moves the bound Echo; `bindActiveLoadoutToEcho` binds whichever loadout is active AT the bind; the earned flag + both slots + the ledger survive save/load (T9.1 pre-integration pinned); per-slot history survives swaps (entries tag their slot; a swap entry is not rewindable — its before is a wrapper))
+- [x] `PROVISIONAL:D3` fallback if rejected: once-per-fight Act II re-slot variant specced in `[01] R4` — do not build without a decision (2026-10-18 — D3 is APPROVED for the Twin Ledger in DECISIONS.md §1; the fallback variant is deliberately unbuilt, as the task directs)
 **References:** `[01] R4`, `§4` paste-block, D3, F6.
 **Dependencies:** ← T5.2; **← D3** (default: Twin Ledger).
 **Acceptance criteria:** second slot appears only when earned; swaps preserve the Reshape Ledger's per-slot history; Echo binds the active loadout (state test).
@@ -1045,15 +1044,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T5.4 — Echo AI: scoring, lethal check, pointless-cast filter
-- [ ] T5.4 done
-
+- [x] T5.4 done (2026-10-18 — `engine/ai.js` rewritten behind the unchanged Phase-1 interface; `engine/damage.js` gained the shared estimator; `fight.js` wires the T4.5 Rites-of-Passage trigger; 26 tests in `tests/phase5-ai.test.js`)
 **Goal:** the shared AI rules of `[GDD] §12.3` — deterministic scoring, lethal check first, no pointless casts, Strike fallback — the quality bar §17 lists as risk #1.
 **Implementation:**
-- [ ] Fixed scoring formula per verse from visible state (own HP/Resolve/statuses, opponent's *visible* HP/statuses/Resolve); only exact ties random (`Band(k)` among equals)
-- [ ] Rule 1 lethal check: any usable damaging verse expected to kill → cast it
-- [ ] Rule 2 pointless-cast filter: no re-applying active debuffs, no heal above 65% HP, no cleanse when clean, no Thorns when up, no Resolve verse above 3
-- [ ] Rule 3 Strike fallback when nothing useful/affordable
-- [ ] Expected-damage estimator shared with T2.4's sim (one implementation)
+- [x] Fixed scoring formula per verse from visible state (own HP/Resolve/statuses, opponent's *visible* HP/statuses/Resolve); only exact ties random (`Band(k)` among equals) (2026-10-18 — the opponent exists to the AI ONLY as `visibleOf()`: HP, Resolve, chip values with the F-STATUS-1 transport mods stripped (a vow/mark leak), the D10 temperature bar, and the defense constants computed at the boundary; decisive boards consume ZERO Measure draws; exact ties → Band(k) among equals; scores 2dp so ties are computable)
+- [x] Rule 1 lethal check: any usable damaging verse expected to kill → cast it (2026-10-18 — runs BEFORE the filter (a kill is never pointless); multi-hit and ward-drain simulated per hit; highest expected land first, ties → Band(k); the decision is labeled `lethal` in the return)
+- [x] Rule 2 pointless-cast filter: no re-applying active debuffs, no heal above 65% HP, no cleanse when clean, no Thorns when up, no Resolve verse above 3 (2026-10-18 — all five cases verified, borders exact (65.0% heals; resolve 3 is legal); scope: only verses WITHOUT a damage op can be pointless, and only when EVERY op is; a `double` burn amplifies rather than re-applies; damage verses are never filtered (riders don't taint them); filtered rows keep their would-be score + reason strings in the returned table)
+- [x] Rule 3 Strike fallback when nothing useful/affordable (2026-10-18 — nothing unfiltered, or Strike the only usable cast → Strike, labeled `fallback`; the empty-pool guard unchanged)
+- [x] Expected-damage estimator shared with T2.4's sim (one implementation) (2026-10-18 — `expectedDirectDamage` in engine/damage.js mirrors resolveDamage's §5.4 order step-for-step with jitter at center / no crit / no Measure consumption; NON-mutating (no fortune drift, no ward spend, no HP change); proven equal to resolveDamage under a neutral mocked Measure (the one-implementation test); opts inject the projection's defense constant, bleed stacks and the RoP damage-bonus simulation)
 **References:** `[GDD] §12.3` rules 1–3, `§10.9` rule 6, `§17` risk table.
 **Dependencies:** ← T5.1, T1.6.
 **Acceptance criteria:** scoring deterministic for fixed state; ties only among exact equals; the five pointless-cast cases each verified; fallback fires when broke/locked.

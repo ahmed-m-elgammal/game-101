@@ -31,6 +31,8 @@ const { RITES } = require('./rites.js');
 const { NAMED_ECHOES, RITE_USERS, FLOOR_POPULATION, ECHO_BY_ID } = require('./named-echoes.js');
 const { CORVANE_SHEET_IDS, corvaneSheet, corvaneCounterbuild, detectLean, buildStringOf, COUNTER_RULES, NEUTRAL_LINE } = require('./corvane.js');
 const { XP_THRESHOLDS, XP_ROLES, FIGHT_ROLES, CHAPTER_FIGHTS, xpForFight, chapterCompletionXp, statPointsForLevel, levelForXp, floorXp, FLOOR_FIRST_BIND_XP, FLOOR_FIRST_IMPORT_XP, campaignWalk, CAMPAIGN_TARGET_LINE } = require('./progression.js');
+const { DOCTRINES, DOCTRINE_BY_ID, getDoctrine, DOCTRINE_IDS } = require('./doctrines.js');
+
 
 
 
@@ -46,7 +48,7 @@ const { XP_THRESHOLDS, XP_ROLES, FIGHT_ROLES, CHAPTER_FIGHTS, xpForFight, chapte
 
 
 /** Save-state stamp (T9.1 migrations read this). Bump on any content change. */
-const CONTENT_VERSION = { major: 4, minor: 0, patch: 0, stamp: 'phase-4.0.0' };
+const CONTENT_VERSION = { major: 5, minor: 0, patch: 0, stamp: 'phase-5.0.0' };
 
 /** Deep freeze — content is immutable at runtime (T4.1 acceptance). */
 function deepFreeze(obj) {
@@ -343,4 +345,4 @@ function loadRoster() {
 }
 
 
-module.exports = { deepFreeze, assembleContent, realBundle, loadReal, makeRegistry, assembleRoster, loadRoster, CONTENT_VERSION, CLASSES, CLASS_IDS, COUNTER_TABLE, STAT_KEYS, STAT_NAMES, STAT_ROLES, DERIVED_RULES, STRIKE, VERSES, VERSE_BY_ID, getVerse, poolFor, VOWS, CLASS_VOWS, STORY_VOWS, VOW_BY_ID, getVow, creationVowsFor, vowsFor, ITEMS, WEAPONS, VESTMENTS, RELICS, ITEM_BY_ID, getItem, itemsBySlot, affinityCount, SOURCES, SOURCE_BY_ID, SOURCE_IDS, getSource, ENEMIES, ENEMY_BY_ID, getEnemy, enemyBuild, sequenceMembers, UNBOUND_VOICES, SUMMON_BODIES, TURNED_POUR_ALLY, COUNTER_LINES, SIGNATURE_VERBS, SIGNATURE_VERB_COUNT, RITES, NAMED_ECHOES, RITE_USERS, FLOOR_POPULATION, ECHO_BY_ID, CORVANE_SHEET_IDS, corvaneSheet, corvaneCounterbuild, detectLean, buildStringOf, COUNTER_RULES, NEUTRAL_LINE, XP_THRESHOLDS, XP_ROLES, FIGHT_ROLES, CHAPTER_FIGHTS, xpForFight, chapterCompletionXp, statPointsForLevel, levelForXp, floorXp, FLOOR_FIRST_BIND_XP, FLOOR_FIRST_IMPORT_XP, campaignWalk, CAMPAIGN_TARGET_LINE, validate, OPCODES };
+module.exports = { deepFreeze, assembleContent, realBundle, loadReal, makeRegistry, assembleRoster, loadRoster, CONTENT_VERSION, CLASSES, CLASS_IDS, COUNTER_TABLE, STAT_KEYS, STAT_NAMES, STAT_ROLES, DERIVED_RULES, STRIKE, VERSES, VERSE_BY_ID, getVerse, poolFor, VOWS, CLASS_VOWS, STORY_VOWS, VOW_BY_ID, getVow, creationVowsFor, vowsFor, ITEMS, WEAPONS, VESTMENTS, RELICS, ITEM_BY_ID, getItem, itemsBySlot, affinityCount, SOURCES, SOURCE_BY_ID, SOURCE_IDS, getSource, ENEMIES, ENEMY_BY_ID, getEnemy, enemyBuild, sequenceMembers, UNBOUND_VOICES, SUMMON_BODIES, TURNED_POUR_ALLY, COUNTER_LINES, SIGNATURE_VERBS, SIGNATURE_VERB_COUNT, RITES, NAMED_ECHOES, RITE_USERS, FLOOR_POPULATION, ECHO_BY_ID, CORVANE_SHEET_IDS, corvaneSheet, corvaneCounterbuild, detectLean, buildStringOf, COUNTER_RULES, NEUTRAL_LINE, XP_THRESHOLDS, XP_ROLES, FIGHT_ROLES, CHAPTER_FIGHTS, xpForFight, chapterCompletionXp, statPointsForLevel, levelForXp, floorXp, FLOOR_FIRST_BIND_XP, FLOOR_FIRST_IMPORT_XP, campaignWalk, CAMPAIGN_TARGET_LINE, DOCTRINES, DOCTRINE_BY_ID, getDoctrine, DOCTRINE_IDS, validate, OPCODES };

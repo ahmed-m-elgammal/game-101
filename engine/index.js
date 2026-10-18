@@ -4,6 +4,7 @@
  */
 Object.assign(exports, require('../rng/index.js'));
 Object.assign(exports, require('./fighter.js'));
+Object.assign(exports, require('./build.js'));
 Object.assign(exports, require('./status.js'));
 Object.assign(exports, require('./damage.js'));
 Object.assign(exports, require('./resolve.js'));

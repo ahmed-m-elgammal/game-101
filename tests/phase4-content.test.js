@@ -97,7 +97,10 @@ test('T4.1: registry + version stamp (T9.1 save states)', () => {
   assert.strictEqual(reg.vowIds.length, 24);
   const candle = require('../data/schemas/fixtures.json');
   assert.ok(candle);
-  assert.match(CONTENT_VERSION.stamp, /^phase-4/);
+  // 2026-10-18 T5.1: the content layer grew the doctrines table (§12.2) —
+  // CONTENT_VERSION bumps 4.0.0 → 5.0.0 (the T9.1 stamp contract: bump on
+  // any content change).
+  assert.match(CONTENT_VERSION.stamp, /^phase-5/);
   const echo = { v: 1, name: 'X', cls: 'ashblade', level: 1, alloc: { vig: 4, mig: 0, wit: 0, grd: 0, hst: 0 }, vow: 'red_tide',
     verses: ['rend', 'opening_cut', 'flay', 'drink_deep'], gear: { weapon: 'wick_cutter' }, doctrine: 'standard' };
   const r = validate('echoCode', echo, reg);

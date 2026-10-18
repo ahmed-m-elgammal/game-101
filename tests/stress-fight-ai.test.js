@@ -1173,11 +1173,32 @@ test('AI scores[hush]: richer victim resolve makes hush tastier', () => {
   assert.ok(rich > poor, `rich ${rich} > poor ${poor}`);
 });
 test('AI scores[cleanse]: cleanse-all only scores with debuffs present', () => {
+  // T5.4 reconciliation (2026-10-18): the clean-board cleanse is no longer
+  // merely score-0 — §12.3 rule 2 FILTERS it (pointless-cast filter, reason
+  // 'cleanse:clean') and Strike fallback covers the turn. The probe now
+  // asserts the filter marker on the clean board and the strong score (and
+  // unfiltered status) on the dirty one — the rule's intent, tightened.
   const purify = getVerse('purify');
-  const clean = execVerseDirect(purify, {}, {});
-  const dirty = execVerseDirect(purify, { statuses: (() => { const s = initStatuses(); s.bleed = { stacks: 3, srcMIG: 8, turns: 3 }; return s; })() }, {});
-  assert.ok(Math.abs(clean - -2.4) < 1e-9, `clean board → 0 − cost 2.4 (${clean})`);
-  assert.ok(dirty > 10, `dirty board → big (${dirty})`);
+  const { mulberry32, makeMeasures } = require('../rng/index.js');
+  const clean = chooseVerse(
+    { sheet: { stats: { vig: 6, mig: 8, wit: 9, grd: 4, hst: 7 }, mainStat: 'wit', damageType: 'ember', verses: [] },
+      hp: 100, maxHp: 120, statuses: initStatuses(), mods: {}, riteState: null, resolve: 5 },
+    { sheet: { stats: { vig: 6, mig: 8, wit: 9, grd: 4, hst: 7 }, mainStat: 'wit', damageType: 'ember', verses: [] },
+      hp: 100, maxHp: 120, statuses: initStatuses(), mods: {}, riteState: null, resolve: 5 },
+    {}, makeMeasures(mulberry32(777)), T, () => [STRIKE, purify]);
+  const cleanRow = clean.scores.find((s) => s.verse.id === 'purify');
+  assert.strictEqual(clean.verse.id, 'strike', 'clean board → Strike fallback covers the turn');
+  assert.deepStrictEqual(cleanRow.reasons, ['cleanse:clean'], 'the filter names its reason');
+  const dirty = chooseVerse(
+    { sheet: { stats: { vig: 6, mig: 8, wit: 9, grd: 4, hst: 7 }, mainStat: 'wit', damageType: 'ember', verses: [] },
+      hp: 100, maxHp: 120, statuses: initStatuses(), mods: {}, riteState: null, resolve: 5,
+      statuses: (() => { const s = initStatuses(); s.bleed = { stacks: 3, srcMIG: 8, turns: 3 }; return s; })() },
+    { sheet: { stats: { vig: 6, mig: 8, wit: 9, grd: 4, hst: 7 }, mainStat: 'wit', damageType: 'ember', verses: [] },
+      hp: 100, maxHp: 120, statuses: initStatuses(), mods: {}, riteState: null, resolve: 5 },
+    {}, makeMeasures(mulberry32(777)), T, () => [STRIKE, purify]);
+  const dirtyRow = dirty.scores.find((s) => s.verse.id === 'purify');
+  assert.strictEqual(dirtyRow.filtered, false, 'dirty board → cleanse is unfiltered');
+  assert.ok(dirtyRow.score > 10, `dirty board → big (${dirtyRow.score})`);
 });
 test('AI scores[selfTrue]: the self-damage penalty grows with HP fraction (preserve HP when healthy)', () => {
   const fan = getVerse('fan_the_flames');

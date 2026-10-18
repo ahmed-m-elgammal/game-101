@@ -23,7 +23,7 @@ import { evalRites, temperatureState } from './rites.js';
 import { getVerse, STRIKE, VERSE_BY_ID } from '../data/verses.js';
 import { RITES } from '../data/rites.js';
 import { SUMMON_BODIES } from '../data/enemies.js';
-import { chooseVerse } from './ai.js';
+import { chooseVerse, maybeActivateOncePerFight } from './ai.js';
 import { markMods, mergeMods, statusBlocked, applyFightStartMarks, turnStartMarks, effectiveCost, applierCurseMult } from './marks.js';
 
 const DEBUFF_KEYS = ['bleed', 'burn', 'curse', 'fray', 'hush', 'stun'];
@@ -1039,6 +1039,12 @@ export function step(session) {
       // named verse; a tuning Bell wardances instead of attacking.
       pool = calm.length ? calm : [getVerse(STRIKE.id)];
     }
+    // T5.4 — Rites of Passage (the T4.5 deferred `wire: 'T5.4'`): the AI
+    // fires the once-per-fight transform when it strictly raises this
+    // turn's best expected damage against the current target. Deterministic,
+    // honest (visible state only), at most once per fight. Manual sides
+    // activate from the loadout UI (T8.x) — recorded in DECISIONS.md.
+    maybeActivateOncePerFight(session, f, pool);
     const pick = chooseVerse(f, f.opponent, s, session.m, session.tuning, () => pool);
     if (pick.tieBreak) {
       session.logLine('info', f.side, `${f.sheet.name} hesitates between equals — the Measure picks ${pick.verse.name}.`);

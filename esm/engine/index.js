@@ -4,6 +4,7 @@
  */
 export * from '../rng/index.js';
 export * from './fighter.js';
+export * from './build.js';
 export * from './status.js';
 export * from './damage.js';
 export * from './resolve.js';

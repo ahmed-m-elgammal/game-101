@@ -177,6 +177,10 @@ function buildSheet(build, tuning) {
     items: build.items || [],
     isEnemy: !!build.isEnemy,
     rite: build.rite || null,
+    // T5.1: the Echo's doctrine rides the sheet (§12.1 — a frozen copy of a
+    // build includes the doctrine). Inert to the fight math until T5.5
+    // layers the doctrine behaviors over the T5.4 shared AI rules.
+    doctrine: build.doctrine || null,
     // T4.6 special-mechanics block (verbatim from the data row; the engine
     // reads it, never writes it). Sequence rides separately.
     special: build.special ? structuredClone(build.special) : null,

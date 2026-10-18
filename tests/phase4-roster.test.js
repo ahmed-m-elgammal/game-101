@@ -514,7 +514,18 @@ test('T4.7: D10 Warden lever — reflect income doubles against the molten Bell'
   const thornsVal = a.statuses.thorns.value;
   // Let the Bell attack the warden: the reflect lands doubled on her.
   let guard = 0;
-  while (!s.state.over && guard++ < 60 && !s.log.some((l) => l.text && l.text.includes('Thorns answer'))) step(s);
+  // T5.4 reconciliation (2026-10-18): the Echo AI now scores damage through
+  // the shared expected-damage estimator (real mitigation, §12.3 rule
+  // quality bar), so at seed 1 the molten Bell opens Brace + Spikes instead
+  // of attacking before the parked side's second turn — and the old loop
+  // never fed the manual side at all (it only worked while the Bell
+  // attacked first). The driver now plays the parked side honestly
+  // (Strike) while waiting for the Bell to swing into the spikes. The
+  // asserted mechanic is unchanged: reflect income ×2 against the molten Bell.
+  while (!s.state.over && guard++ < 120 && !s.log.some((l) => l.text && l.text.includes('Thorns answer'))) {
+    if (s.state.phase === 'await_input') submitChoice(s, 'strike');
+    else step(s);
+  }
   const refl = s.log.find((l) => l.text && l.text.includes('Thorns answer'));
   assert.ok(refl, 'a reflect happened');
   const dealt = Number(refl.text.match(/takes (\d+) true/)[1]);

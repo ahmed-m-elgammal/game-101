@@ -221,5 +221,95 @@ function trueTick(amount) {
   return Math.max(0, Math.round(amount));
 }
 
+/**
+ * The deterministic EXPECTATION of one direct-damage instance — the shared
+ * estimator T5.4's Echo AI (lethal check + damage scoring) and any Reading
+ * projection read; resolveDamage remains the only fight-mutation path.
+ * ONE implementation of the §5.4 order: this mirrors resolveDamage's fixed
+ * sequence step-for-step with the Measure draws fixed (jitter at its center
+ * 1.00, no crit roll — the expectation is crit-free by §12.3's "expected to
+ * kill" reading), so the two can never disagree about ORDER, only about the
+ * two values the Measure owns.
+ *
+ * NON-MUTATING: no state.fortune drift, no ward-pool spend, no HP change,
+ * no Measure consumption (Ban 6: AI competence never touches the stream).
+ *
+ * `opts.bleedStacks` feeds perBleedStack specs (the fight sets spec._bleedStacks
+ * before calling resolveDamage; the AI passes the visible stack count).
+ * `opts.fortune` defaults to 1.0 (the fight passes state.fortune — visible on
+ * the Wax Meter, §10.9 rule 8).
+ * `opts.defense` injects a precomputed mitigation constant (the visible-
+ * projection path — the AI never reads the defender's sheet to derive it).
+ * `opts.bonusOverride` simulates the Rites-of-Passage damage bonus without
+ * mutating the fighter (the transform decision is evaluated BEFORE it fires).
+ *
+ * Returns { preWard, land, expectation, mit, wardAbsorbed } — `land` is the
+ * expected HP damage after the (arithmetically, not physically) applied Ward
+ * pool; `expectation` is the pre-rounding float (the AI's scoring reads it
+ * so near-miss boards stay distinct — the lethal check reads `land`).
+ */
+function expectedDirectDamage(actor, target, spec, tuning, opts = {}) {
+  const mods = actor.mods || {};
+  const stats = actor.sheet.stats;
 
-module.exports = { mitigationSum, distinctDebuffs, resolveDamage, trueTick };
+  // 1. base + Σ(coefficient × stat) — float, same order as resolveDamage
+  let raw = spec.base;
+  for (const c of spec.coefs || []) {
+    const statKey = c.stat === 'main' ? actor.sheet.mainStat : c.stat;
+    raw += c.c * stats[statKey];
+  }
+
+  if (spec.perBleedStack) raw *= opts.bleedStacks ?? 0;
+
+  if (spec.bonusIfTargetBurning && target.statuses.burn) raw *= 1 + spec.bonusIfTargetBurning;
+  if (spec.perDebuffPct) raw *= 1 + spec.perDebuffPct * distinctDebuffs(target);
+  if (spec.perDebuffFlat) {
+    const deb = Math.min(spec.perDebuffFlatMax ?? 4, distinctDebuffs(target));
+    raw += spec.perDebuffFlat * deb;
+  }
+  if (mods.emberVsBurning && spec.type === 'ember' && target.statuses.burn) raw *= 1 + mods.emberVsBurning;
+  if (mods.shadePerDebuff && spec.type === 'shade') raw *= 1 + mods.shadePerDebuff * distinctDebuffs(target);
+  raw *= 1 + (mods.damageBonus || 0);
+
+  raw *= 1 + (mods.markDamagePct || 0);
+  const hpFrac = target.maxHp > 0 ? target.hp / target.maxHp : 0;
+  if (mods.vsHpBelow && hpFrac < mods.vsHpBelow.hp) raw *= 1 + mods.vsHpBelow.pct;
+  if (mods.vsHpAbove && hpFrac > mods.vsHpAbove.hp) raw *= 1 + mods.vsHpAbove.pct;
+  if (mods.markPerDebuffFlat) raw += mods.markPerDebuffFlat * distinctDebuffs(target);
+  const shiftBonus = opts.bonusOverride != null
+    ? opts.bonusOverride
+    : (actor.flags && actor.flags.emberShift ? actor.flags.emberShift.bonus : 0);
+  if (shiftBonus) raw *= 1 + shiftBonus;
+
+  if (actor.statuses.curse) raw *= actor.statuses.curse.mod?.curseMult ?? tuning.curseMult;
+
+  if (actor.riteState && actor.riteState.flags && actor.riteState.flags.damageBonusPct) {
+    raw *= 1 + actor.riteState.flags.damageBonusPct;
+  }
+
+  if (actor.sheet.special?.foldBelowHP
+    && actor.maxHp > 0 && actor.hp / actor.maxHp < actor.sheet.special.foldBelowHP) {
+    raw *= 0.5;
+  }
+
+  const temp = temperatureDefenseMult(target);
+  if (temp.mult !== 1) raw *= temp.mult;
+
+  // jitter fixed at 1.00 (its center); fortune = the caller's visible value
+  raw *= (opts.fortune != null ? opts.fortune : 1.0);
+
+  // 7. mitigation — SUMMED, same cap math, same single rounding line
+  let mit = 0;
+  if (!spec.ignoreMit) {
+    mit = opts.defense != null ? opts.defense : mitigationSum(target, spec.type, tuning);
+    if (spec.mitigationFactor) mit *= spec.mitigationFactor;
+  }
+  const preWard = Math.round(raw * (1 - mit)); // ← the ONLY rounding, same line
+
+  const w = target.statuses.ward;
+  const wardAbsorbed = w && w.pool > 0 && preWard > 0 ? Math.min(w.pool, preWard) : 0;
+  return { preWard, land: preWard - wardAbsorbed, expectation: raw * (1 - mit), mit, wardAbsorbed, tempMult: temp.mult };
+}
+
+
+module.exports = { mitigationSum, distinctDebuffs, resolveDamage, trueTick, expectedDirectDamage };

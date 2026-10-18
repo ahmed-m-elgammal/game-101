@@ -31,6 +31,7 @@ import { RITES } from './rites.js';
 import { NAMED_ECHOES, RITE_USERS, FLOOR_POPULATION, ECHO_BY_ID } from './named-echoes.js';
 import { CORVANE_SHEET_IDS, corvaneSheet, corvaneCounterbuild, detectLean, buildStringOf, COUNTER_RULES, NEUTRAL_LINE } from './corvane.js';
 import { XP_THRESHOLDS, XP_ROLES, FIGHT_ROLES, CHAPTER_FIGHTS, xpForFight, chapterCompletionXp, statPointsForLevel, levelForXp, floorXp, FLOOR_FIRST_BIND_XP, FLOOR_FIRST_IMPORT_XP, campaignWalk, CAMPAIGN_TARGET_LINE } from './progression.js';
+import { DOCTRINES, DOCTRINE_BY_ID, getDoctrine, DOCTRINE_IDS } from './doctrines.js';
 
 export { CLASSES, CLASS_IDS, COUNTER_TABLE, STAT_KEYS, STAT_NAMES, STAT_ROLES, DERIVED_RULES };
 export { STRIKE, VERSES, VERSE_BY_ID, getVerse, poolFor };
@@ -43,10 +44,11 @@ export { RITES };
 export { NAMED_ECHOES, RITE_USERS, FLOOR_POPULATION, ECHO_BY_ID };
 export { CORVANE_SHEET_IDS, corvaneSheet, corvaneCounterbuild, detectLean, buildStringOf, COUNTER_RULES, NEUTRAL_LINE };
 export { XP_THRESHOLDS, XP_ROLES, FIGHT_ROLES, CHAPTER_FIGHTS, xpForFight, chapterCompletionXp, statPointsForLevel, levelForXp, floorXp, FLOOR_FIRST_BIND_XP, FLOOR_FIRST_IMPORT_XP, campaignWalk, CAMPAIGN_TARGET_LINE };
+export { DOCTRINES, DOCTRINE_BY_ID, getDoctrine, DOCTRINE_IDS };
 export { validate, OPCODES };
 
 /** Save-state stamp (T9.1 migrations read this). Bump on any content change. */
-export const CONTENT_VERSION = { major: 4, minor: 0, patch: 0, stamp: 'phase-4.0.0' };
+export const CONTENT_VERSION = { major: 5, minor: 0, patch: 0, stamp: 'phase-5.0.0' };
 
 /** Deep freeze — content is immutable at runtime (T4.1 acceptance). */
 export function deepFreeze(obj) {
