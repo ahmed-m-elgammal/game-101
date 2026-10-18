@@ -48,16 +48,21 @@ function tutorialSeed() {
 function titleScreen() {
   clear(app);
   const screen = el('section', { className: 'screen', attrs: { 'data-screen': 'title' } });
+  const key = el('img', {
+    className: 'title-art',
+    attrs: { src: 'assets/art/plates/title.webp', alt: '', decoding: 'async' },
+  });
+  key.addEventListener('error', () => key.remove());
   const mark = el('h1', { className: 'wordmark', text: 'The Ashen Choir' });
   const sub = el('p', {
     className: 'fighter-sub',
-    text: 'a build-driven, text-carved duel RPG · first playable slice (Phases 1–3)',
+    text: 'a build-driven, text-carved duel RPG · first playable slice (Phases 1–4)',
   });
   const tray = el('div', { className: 'choice-tray' });
   const btn = el('button', { className: 'choice-btn', text: 'Light the candle.' });
   btn.addEventListener('click', () => sceneScreen());
   tray.append(btn);
-  screen.append(mark, sub, tray);
+  screen.append(key, mark, sub, tray);
   app.append(screen);
 }
 

@@ -100,11 +100,14 @@ function applyBurn(f, potency, srcWIT, turns, srcKindling, srcSide) {
   return f.statuses.burn;
 }
 
-function applyTimed(f, key, turns, mod) {
+function applyTimed(f, key, turns, mod, extra) {
   // `mod` carries a source-defined depth for statuses that need one
-  // (Hush: the APPLIER's vow depth — F-STATUS-1). Other timed statuses
-  // ignore it and keep the plain {turns} shape.
-  f.statuses[key] = mod === undefined ? { turns } : { turns, mod };
+  // (Hush: the APPLIER's vow depth — F-STATUS-1; Curse: the APPLIER's depth
+  // — F-DATA-1). `extra` carries mark riders (Choir-Seal's critCut).
+  // Other timed statuses keep the plain {turns} shape.
+  f.statuses[key] = mod === undefined && extra === undefined
+    ? { turns }
+    : { turns, ...(mod !== undefined ? { mod } : {}), ...(extra || {}) };
   return f.statuses[key];
 }
 
@@ -195,6 +198,10 @@ function tickAtTurnStart(f, tuning, mods, onTrue, onEvent) {
     // Kindling routes to the SOURCE (stored at application; F-STATUS-1)
     if (burn.kindling > 0) {
       onEvent({ kind: 'resolve', amount: burn.kindling, why: 'Kindling', side: burn.srcSide ?? null });
+    }
+    // Ysolde's Censer: the SOURCE pays 1 per tick of their own burn (T4.5)
+    if (burn.selfTick && burn.srcSide) {
+      onEvent({ kind: 'selfTick', side: burn.srcSide, amount: burn.selfTick });
     }
     burn.turns -= 1;
     if (burn.turns <= 0) f.statuses.burn = null;

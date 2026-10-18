@@ -3,7 +3,9 @@
 // before it ships. `validate(kind, obj, ctx)` -> { ok, errors: string[] }.
 // Registries (verse/item/vow ids) are injected via ctx so Phase 4 data can
 // register without editing this file. Fixtures: data/schemas/fixtures.json.
-'use strict';
+//
+// T4.1: this file is the CANONICAL ESM source. The sync transform emits the
+// CommonJS mirror the Node test suite requires (same rules, one source).
 
 const STAT_KEYS = ['vig', 'mig', 'wit', 'grd', 'hst'];
 const CLASSES = ['ashblade', 'cinder_witch', 'gravewarden', 'hollow_cantor'];
@@ -250,5 +252,8 @@ function validate(kind, obj, ctx) {
   crossChecks(kind, obj, ctx, errors);
   return { ok: errors.length === 0, errors };
 }
+
+
+
 
 module.exports = { validate, SCHEMAS, OPCODES, STAT_KEYS, CLASSES, TALLIES };

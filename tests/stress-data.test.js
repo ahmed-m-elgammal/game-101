@@ -132,7 +132,7 @@ test('classes: four classes with canon identity fields', () => {
     assert.strictEqual(c.mainStat, e.main);
     assert.strictEqual(c.damageType, e.type);
     assert.strictEqual(c.vows.length, e.vows);
-    assert.strictEqual(c.base.vig + c.base.mig + c.base.wit + c.base.grd + c.base.hst, 27);
+    assert.strictEqual(c.stats.vig + c.stats.mig + c.stats.wit + c.stats.grd + c.stats.hst, 27);
   }
 });
 test('classes: every class validates against the frozen class schema', () => {
@@ -140,7 +140,7 @@ test('classes: every class validates against the frozen class schema', () => {
     const c = CLASSES[id];
     const row = {
       id, name: c.name,
-      stats: c.base,
+      stats: c.stats,
       damageType: c.damageType,
       verses: VERSES.filter((v) => v.cls === id).map((v) => v.id),
     };

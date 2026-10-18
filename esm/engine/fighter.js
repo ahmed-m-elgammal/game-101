@@ -29,7 +29,7 @@ export function budgetFor(level, tuning) {
  */
 export function validateAlloc(build, tuning) {
   const errors = [];
-  const base = CLASSES[build.clazz].base;
+  const base = CLASSES[build.clazz].stats;
   const creationSum = STAT_KEYS.reduce((s, k) => s + (build.creation?.[k] || 0), 0);
   const levelSum = STAT_KEYS.reduce((s, k) => s + (build.levelUps?.[k] || 0), 0);
   if (creationSum !== tuning.creationPoints) errors.push(`creation must total ${tuning.creationPoints} (got ${creationSum})`);
@@ -55,7 +55,7 @@ export function checkBudget(stats, level, tuning) {
 
 /** Class base + creation + level-ups, capped per stat. */
 export function finalStats(build, tuning) {
-  const base = CLASSES[build.clazz].base;
+  const base = CLASSES[build.clazz].stats;
   const out = {};
   for (const k of STAT_KEYS) {
     out[k] = Math.min(
@@ -163,6 +163,10 @@ export function buildSheet(build, tuning) {
     mainStat: cls.mainStat,
     vow: build.vow || null,
     vowName: build.vow ? (cls.vows.find((x) => x.id === build.vow)?.name || build.vow) : null,
+    // T4.5 art hook: enemy portraits resolve by id (assets/art/enemies/<art>);
+    // player panels fall back to the class portrait. Absent art degrades to
+    // the CSS plate — UI-only, never read by the math.
+    art: build.art || null,
     verses: (build.verses || []).slice(0, 4),
     items: build.items || [],
     isEnemy: !!build.isEnemy,

@@ -32,9 +32,12 @@ function mitigationSum(target, dmgType, tuning) {
   let mit = perGrd * grd;
   if (target.statuses.brace) mit += mods.braceBonus ?? tuning.braceBonus;
   if (mods.mitBonus) mit += mods.mitBonus; // vow Bastion +10%
-  const cap = target.sheet.items.includes(tuning.items.ashGlazedBrassId)
+  // Ash-Glazed Brass raises the cap to 0.70 (§8.3; the mark layer feeds the
+  // same value through mitCapOverride — max of both keeps old builds exact).
+  const brassCap = target.sheet.items.includes(tuning.items.ashGlazedBrassId)
     ? tuning.mitCapAshGlazed
     : tuning.mitCap;
+  const cap = Math.max(brassCap, mods.mitCapOverride || 0);
   return Math.min(cap, Math.max(0, mit));
 }
 
@@ -77,10 +80,21 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
   }
   if (mods.emberVsBurning && spec.type === 'ember' && target.statuses.burn) raw *= 1 + mods.emberVsBurning;
   if (mods.shadePerDebuff && spec.type === 'shade') raw *= 1 + mods.shadePerDebuff * distinctDebuffs(target);
-  raw *= 1 + (mods.damageBonus || 0); // marks/vows flat hook (Phase 3)
+  raw *= 1 + (mods.damageBonus || 0); // vows flat hook (Phase 3)
 
-  // curse — attacker cursed deals less (Last Hymn deepens it)
-  if (actor.statuses.curse) raw *= mods.curseMult || tuning.curseMult;
+  // T4.5 marks — fixed order, all float, all zero when no gear is present
+  raw *= 1 + (mods.markDamagePct || 0);                    // Tithe-Collector's Ledger +10%
+  const hpFrac = target.maxHp > 0 ? target.hp / target.maxHp : 0;
+  if (mods.vsHpBelow && hpFrac < mods.vsHpBelow.hp) raw *= 1 + mods.vsHpBelow.pct;   // Pallbearer's Mace
+  if (mods.vsHpAbove && hpFrac > mods.vsHpAbove.hp) raw *= 1 + mods.vsHpAbove.pct;   // Pale Ash Blade
+  if (mods.markPerDebuffFlat) raw += mods.markPerDebuffFlat * distinctDebuffs(target); // Choir-Scale Blade
+  if (actor.flags.emberShift) raw *= 1 + actor.flags.emberShift.bonus;               // Rites of Passage
+
+  // curse — the depth travels with the STATUS (F-DATA-1: the APPLIER's vow
+  // or mark depth, stored at application — the same transport F-STATUS-1
+  // mandated for Hush). A bare {turns} shape (older saves/tests) falls back
+  // to the canon default ×0.75.
+  if (actor.statuses.curse) raw *= actor.statuses.curse.mod?.curseMult ?? tuning.curseMult;
 
   // Rite damage flag (First Vespers +30%)
   if (actor.riteState && actor.riteState.flags.damageBonusPct) {
@@ -98,13 +112,20 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
   raw *= jitter * state.fortune;
 
   // 6. crit — not affected by fortune. The threshold is rounded to the whole
-  // percent the Measure table speaks in (re-test fix F-DAMAGE-1: float noise
-  // like 0.07×100 = 7.000…001 silently inflated every affected crit chance
-  // by one full percentage point).
+  // percent the Measure table speaks in (re-test fix F-DAMAGE-1). The
+  // Choir-Seal's hush rider cuts the HUSHED attacker's crit chance (T4.5).
   const critChance = tuning.critBase + tuning.critPerHst * stats.hst
-    + (mods.critBonus || 0) + (spec.critBonus || 0);
+    + (mods.critBonus || 0) + (spec.critBonus || 0)
+    - (actor.statuses.hush?.critCut || 0);
   const crit = m.band(100) < Math.round(critChance * 100);
-  if (crit) raw *= mods.critMult || tuning.critMult;
+  // Corvane's Blade tiers (F28/D31): the TARGET's HP band picks the mult.
+  let critMult = mods.critMult || tuning.critMult;
+  if (mods.critTiers) {
+    const frac = target.maxHp > 0 ? target.hp / target.maxHp : 1;
+    const tier = mods.critTiers.find((t) => frac > t.hpAbove) || mods.critTiers[mods.critTiers.length - 1];
+    critMult = tier.mult;
+  }
+  if (crit) raw *= critMult;
 
   // 7. mitigation — SUMMED, never applied in pieces
   let mit = 0;
@@ -130,6 +151,7 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
   let candle = false;
   let killed = false;
   let thornsDealt = 0;
+  let markThorns = 0;
 
   if (land > 0) {
     let remaining = land;
@@ -145,18 +167,25 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
     target.hp = Math.max(0, hpBefore - remaining);
     killed = target.hp <= 0;
 
-    // Thorns: attackers who land a DIRECT hit take X true damage (§5.5)
+    // Thorns: attackers who land a DIRECT hit take X true damage (§5.5).
+    // Founder's Chisel reflects +50% of the triggering damage on top (T4.5).
     const th = target.statuses.thorns;
     if (th) {
-      thornsDealt = Math.round(th.value);
+      const thVal = th.value + (target.mods.thornsReflectBonusPct ? target.mods.thornsReflectBonusPct * land : 0);
+      thornsDealt = Math.round(thVal);
       actor.hp = Math.max(0, actor.hp - thornsDealt);
+    }
+    // Bellmetal Gauntlets: a flat 3 true on every landed hit, thorns or not.
+    if (target.mods.attackerTrueOnHit) {
+      markThorns = target.mods.attackerTrueOnHit;
+      actor.hp = Math.max(0, actor.hp - markThorns);
     }
   }
 
   return {
     dealt: preWard,      // post-mitigation, pre-ward (audit)
     land,                // what actually reached HP
-    raw, jitter, crit, mit, warded, thornsDealt,
+    raw, jitter, crit, mit, warded, thornsDealt, markThorns,
     hpBefore, hpAfter: target.hp,
     candle, killed,
     fortune: state.fortune,

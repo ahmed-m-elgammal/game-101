@@ -32,6 +32,8 @@ function copyTree(fromDir, toDir) {
   for (const e of fs.readdirSync(fromDir, { withFileTypes: true })) {
     const from = path.join(fromDir, e.name);
     const to = path.join(toDir, e.name);
+    // the raw generation PNGs stay in the repo, never in the shipped site
+    if (e.isDirectory() && e.name === 'raw') continue;
     if (e.isDirectory()) { n += copyTree(from, to); continue; }
     copy(from, to);
     n += 1;

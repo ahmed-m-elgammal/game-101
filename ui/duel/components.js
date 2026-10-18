@@ -31,13 +31,30 @@ export function chipView(c) {
   return node;
 }
 
-/** One fighter panel: name, sub, HP bar, HP number, pips, chips. */
+/** One fighter panel: portrait, name, sub, HP bar, HP number, pips, chips. */
 export function fighterPanel(f, opts = {}) {
   const instant = !!opts.instantHp; // DoT ticks bypass the 220ms drain
   const panel = el('section', {
     className: `panel panel--${f.side === 'a' ? 'player' : 'enemy'}`,
     attrs: { 'data-side': f.side },
   });
+  // T4.5 art wave: the enemy's own portrait or the class portrait for the
+  // player. Lazy + degrades silently — the panel works without any art.
+  const artId = f.sheet.isEnemy ? (f.sheet.art || null) : (f.sheet.clazz || null);
+  if (artId) {
+    const dir = f.sheet.isEnemy ? 'enemies' : 'classes';
+    const portrait = el('img', {
+      className: 'fighter-portrait',
+      attrs: {
+        src: `assets/art/${dir}/${artId}.webp`,
+        alt: '',
+        loading: 'lazy',
+        decoding: 'async',
+      },
+    });
+    portrait.addEventListener('error', () => portrait.remove()); // degrade
+    panel.append(portrait);
+  }
   panel.append(
     el('div', { className: 'fighter-name', text: f.sheet.name }),
     el('div', { className: 'fighter-sub', text: `${f.sheet.className} · L${f.sheet.level}${f.sheet.vowName ? ' · ' + f.sheet.vowName : ''}` }),

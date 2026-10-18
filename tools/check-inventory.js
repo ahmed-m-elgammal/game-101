@@ -39,7 +39,14 @@ const KIND_FILES = {
   shrines: ['story/shrines.json'],
 };
 
-function countKind(kinds) {
+// T4.5 (2026-10-18): content authored in Phase 4 lives as JS data modules
+// (data/verses.js, data/vows.js, data/items.js — the CJS mirrors). The
+// counter accepts both: a JSON file when present, else the live module's
+// exported array. The loader validates every row at boot (T4.1), so the
+// counted rows are the validated rows.
+const JS_KINDS = { verses: '../data/verses.js', vows: '../data/vows.js', items: '../data/items.js' };
+
+function countKind(kinds, target) {
   let n = 0;
   for (const rel of kinds) {
     const p = path.join(ROOT, rel);
@@ -52,6 +59,13 @@ function countKind(kinds) {
       process.exitCode = 1;
     }
   }
+  if (n === 0 && JS_KINDS[target]) {
+    try {
+      const mod = require(JS_KINDS[target]);
+      const arr = mod.VERSES || mod.VOWS || mod.ITEMS;
+      if (Array.isArray(arr)) n += arr.length + (target === 'verses' ? 1 : 0); // verses: + Strike (§6.1)
+    } catch { /* module absent — still authoring */ }
+  }
   return n;
 }
 
@@ -59,7 +73,7 @@ const rows = [];
 let missing = 0;
 for (const [target, expected] of Object.entries(TARGETS)) {
   const fileKeys = KIND_FILES[target];
-  const have = fileKeys ? countKind(fileKeys) : null;
+  const have = fileKeys ? countKind(fileKeys, target) : null;
   if (have === null) { rows.push(`${target.padEnd(18)} target ${expected}  (counted in a later phase)`); continue; }
   const ok = have >= expected;
   if (!ok) missing++;

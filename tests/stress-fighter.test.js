@@ -108,7 +108,7 @@ test('validateAlloc: any stat pushed above cap 10 is rejected (per-stat sweep vi
     let left = 4;
     for (const j of KEYS) {
       if (j === k) continue;
-      const put = Math.min(10 - CLASSES.ashblade.base[j], left);
+      const put = Math.min(10 - CLASSES.ashblade.stats[j], left);
       creation[j] = put; left -= put;
     }
     assert.strictEqual(left, 0, `creation filler for ${k}`);
@@ -176,7 +176,7 @@ for (const L of [2, 3, 4, 6, 7, 8, 9]) {
     let rest = pts;
     // spend along canonical stat order, respecting cap (base + creation)
     for (const k of KEYS) {
-      const room = 10 - CLASSES.ashblade.base[k] - creation[k];
+      const room = 10 - CLASSES.ashblade.stats[k] - creation[k];
       const put = Math.min(room, rest);
       levelUps[k] = put; rest -= put;
       if (rest === 0) break;
@@ -594,7 +594,7 @@ test('canon invariants: 4 classes, 5 stat keys, class base sums 27 each', () => 
   assert.strictEqual(CLASS_IDS.length, 4);
   assert.deepEqual(KEYS, ['vig', 'mig', 'wit', 'grd', 'hst']);
   for (const cls of CLASS_IDS) {
-    assert.strictEqual(KEYS.reduce((a, k) => a + CLASSES[cls].base[k], 0), 27, cls);
+    assert.strictEqual(KEYS.reduce((a, k) => a + CLASSES[cls].stats[k], 0), 27, cls);
   }
 });
 test('canon invariants: tuning overrides never mutate CANON (deep isolation)', () => {
@@ -674,7 +674,7 @@ for (const cls of CLASS_IDS) {
       assert.strictEqual(s.level, L);
       assert.ok(s.maxHp >= 60 + 8 * 5 && s.maxHp <= 60 + 8 * 10);
       for (const k of KEYS) {
-        assert.ok(Number.isInteger(s.stats[k]) && s.stats[k] >= CLASSES[cls].base[k] && s.stats[k] <= 10, `${k}=${s.stats[k]}`);
+        assert.ok(Number.isInteger(s.stats[k]) && s.stats[k] >= CLASSES[cls].stats[k] && s.stats[k] <= 10, `${k}=${s.stats[k]}`);
       }
     });
   }

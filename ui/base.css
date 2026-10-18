@@ -75,6 +75,34 @@ a { color: var(--tallow); }
 }
 .panel--raised { background: var(--soot-3); }
 
+/* -- T4.5 art wave: fighter portraits + title key art -------------------- */
+.fighter-portrait {
+  position: absolute;
+  top: -14px;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid rgba(157, 148, 138, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+  filter: saturate(0.9) contrast(1.02);
+  background: var(--soot-2);
+}
+.panel--player .fighter-portrait { left: -10px; }
+.panel--enemy .fighter-portrait { right: -10px; }
+.panel { position: relative; } /* portrait anchor */
+.panel--player { padding-left: 62px; }
+.panel--enemy { padding-right: 62px; text-align: right; }
+.panel--enemy .fighter-name, .panel--enemy .fighter-sub { text-align: right; }
+.title-art {
+  width: 100%;
+  max-width: 760px;
+  aspect-ratio: 7 / 4;
+  object-fit: cover;
+  border: 1px solid rgba(157, 148, 138, 0.25);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  background: var(--soot-3);
+}
+
 .fighter-name {
   font-family: var(--font-display);
   font-size: var(--t-title-size);

@@ -752,20 +752,22 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 # Phase 4 — Content Data Layer
 
+> **Progress (2026-10-18):** T4.1–T4.5 COMPLETE — the content data layer, vows, items and the mark engine are live (1,236/1,236 tests, bans/amendment gates green, N10 recorded). T4.6–T4.12 (roster, Rites, named Echoes, Corvane, XP, Calendar, QA gate) remain.
+
 **Purpose:** every number and name in `[GDD] §5–§9` as validated data: classes, 42 verses, 23 vows, 41 items, the 21-fight roster, Rites, named Echoes, Corvane's counter table, XP tables, and the generated Vigil's Calendar. `[GDD] §17` risk #5 says it directly: *write the data tables first, the prose second.*
 **Phase completion criteria:** T0.5's inventory check green; every row schema-valid; budget conformance (T2.3) green on the real roster; the Calendar generates byte-identical to the tables.
 
 ---
 
 ### T4.1 — `data/` module architecture & loaders
-- [ ] T4.1 done
+- [x] T4.1 done (2026-10-18 — `data/index.js`: assembleContent() validate-at-boot with kind/row/field failure names; deep-frozen indexed content (unlock/affinity/grants indexes); `data/fixtures.js` fixture mode independent of real content; `CONTENT_VERSION` stamp for T9.1; canonical ESM `data/schemas/validators.js` with the sync transform emitting the CJS mirror; loader negatives (bad cost, bad slot, unresolved source, unknown class verse) fail loudly in tests)
 
 **Goal:** load, validate, and index all content at boot with schema enforcement and clear failure modes — bad data fails loudly at load, never mysteriously mid-fight.
 **Implementation:**
-- [ ] Loaders for every T0.3 schema; validation at import; frozen indexes by id and by (class, level) for unlock queries
-- [ ] Immutable data objects (no runtime mutation of content); engine reads, never writes
-- [ ] Fixture mode: a parallel minimal dataset for engine/harness tests
-- [ ] Data-version stamp saved into save states (for T9.1 migrations)
+- [x] Loaders for every T0.3 schema; validation at import; frozen indexes by id and by (class, level) for unlock queries
+- [x] Immutable data objects (no runtime mutation of content); engine reads, never writes
+- [x] Fixture mode: a parallel minimal dataset for engine/harness tests
+- [x] Data-version stamp saved into save states (for T9.1 migrations)
 **References:** `[GDD] §15` (data module), T0.3 schemas.
 **Dependencies:** ← T0.3, T0.4.
 **Acceptance criteria:** malformed row → load error naming file/field; indexes serve unlock/affinity queries correctly; fixtures load independently of real content.
@@ -776,14 +778,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.2 — Classes & the class-kit matrix
-- [ ] T4.2 done
+- [x] T4.2 done (2026-10-18 — classes.js formalized to the frozen T0.3 schema (`stats` key, 9-verse priority lists per §6.2–6.5); base rows table-diffed against §5.2 (27 each); damage types + identities verbatim; kit matrix verified cell-for-cell against §5.2 NEW; STAT_ROLES + DERIVED_RULES data for the Reading; creation constraints single-sourced in tuning and asserted)
 
 **Goal:** the four classes exactly per `[GDD] §5.2` (base stats, damage types, identity), plus the 4×4 signature-interaction matrix that the pre-fight Reading surfaces.
 **Implementation:**
-- [ ] Base stat rows: Ashblade 6/8/2/4/7 · Cinder Witch 5/2/9/3/8 · Gravewarden 9/5/2/8/3 · Hollow Cantor 7/2/8/4/6
-- [ ] Damage-type mapping (MIG→Steel+Bleed, WIT→Ember/Shade+Burn+Wards per §5.1) and class identity strings
-- [ ] Kit-vs-kit matrix (§5.2 NEW table) as data for the Reading panel
-- [ ] Creation constraints: 4 free points, class-fixed pools
+- [x] Base stat rows: Ashblade 6/8/2/4/7 · Cinder Witch 5/2/9/3/8 · Gravewarden 9/5/2/8/3 · Hollow Cantor 7/2/8/4/6
+- [x] Damage-type mapping (MIG→Steel+Bleed, WIT→Ember/Shade+Burn+Wards per §5.1) and class identity strings
+- [x] Kit-vs-kit matrix (§5.2 NEW table) as data for the Reading panel
+- [x] Creation constraints: 4 free points, class-fixed pools
 **References:** `[GDD] §5.1`, `§5.2` incl. kit matrix.
 **Dependencies:** ← T4.1.
 **Acceptance criteria:** rows match §5.2 exactly; matrix cells render in Reading fixtures; totals = 27 each (assert).
@@ -794,14 +796,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.3 — Verses: 6 common + 36 class verses
-- [ ] T4.3 done
+- [x] T4.3 done (2026-10-18 — 42 rows (41 + always-available Strike); automated table-diff of unlock/cost/CD against §6.1–§6.5 verbatim; unlock calendar asserted (3 at L1, one per L2–L7); D17 Vigil's Rest cost 2; every effect op-code exercised by ≥1 content row with the verse-expressible subset pinned to verses; schema-validated)
 
 **Goal:** all 42 verses as effect-op-code data (T0.3 vocabulary), with unlock levels, costs, cooldowns, and exact numbers from `[GDD] §6`. Priority order semantics (slot order = Echo AI priority) preserved in the schema.
 **Implementation:**
-- [ ] Common hymns per §6.1 — incl. **Vigil's Rest at cost 2** per D17 default (`PROVISIONAL:D17`); Strike defined as always-available, not a slot
-- [ ] Ashblade §6.2 (9), Cinder Witch §6.3 (9), Gravewarden §6.4 (9), Hollow Cantor §6.5 (9) — every base, coefficient, cost, CD, unlock level L1–L7, and special (per-hit crits on Red Flurry; Reap the Red stack consumption; Conflagration +50% vs burning; Requiem per-distinct-debuff; Seventh Verse consume; Ledger's Ward is enemy-side, not here)
-- [ ] Effect compilation: each verse's effect string compiles to the T0.3 op-codes; anything not expressible → schema gap → fix schema, not the verse
-- [ ] Unlock table: 3 verses at L1, then L2–L7 one per level (ninth verse at L7)
+- [x] Common hymns per §6.1 — incl. **Vigil's Rest at cost 2** per D17 default (`PROVISIONAL:D17`); Strike defined as always-available, not a slot
+- [x] Ashblade §6.2 (9), Cinder Witch §6.3 (9), Gravewarden §6.4 (9), Hollow Cantor §6.5 (9) — every base, coefficient, cost, CD, unlock level L1–L7, and special (per-hit crits on Red Flurry; Reap the Red stack consumption; Conflagration +50% vs burning; Requiem per-distinct-debuff; Seventh Verse consume; Ledger's Ward is enemy-side, not here)
+- [x] Effect compilation: each verse's effect string compiles to the T0.3 op-codes; anything not expressible → schema gap → fix schema, not the verse
+- [x] Unlock table: 3 verses at L1, then L2–L7 one per level (ninth verse at L7)
 **References:** `[GDD] §6.1–6.5` (all tables), `§6` verse-count table, `[03] R5`, D17.
 **Dependencies:** ← T4.1, T0.3.
 **Acceptance criteria:** 42 rows compile; every effect op-code path exercised by at least one verse; counts per §6 table (6/9/9/9/9); cost/CD values diff clean against §6.
@@ -811,16 +813,16 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 ---
 
-### T4.4 — Vows: 12 class + 11 story (de-duplicated)
-- [ ] T4.4 done
+### T4.4 — Vows: 12 class + 11 story (de-duplicated) *(superseded count: 12 + 12 = 24 per DECISIONS.md §6 — D4 removed Keeper's Ring, D4 granted Oren's Post, D30 granted The Kept Name)*
+- [x] T4.4 done (2026-10-18 — 24 vows = 12 class + 12 story (D4: Keeper's Ring cut, Ysolde's Vow unified, Oren's Post granted; D30: The Kept Name); effects in T0.3 op-codes; story sources resolve against the new `data/sources.js` registry (40 rows); Counter-Voice hidden + excluded from pickers; reward-integrity a/b/c green incl. the A2/F26 Ch1 pins)
 
 **Goal:** all 23 vows (`[00]` F25 canon) with exact effects, including the D4 de-duplication: cut the *Ysolde's Vow* relic row (§8.3) and the *Keeper's Ring* vow row (§7.2); unify Ninth Sister's Vow naming; add **Oren's Post** to Ch8-Mercy.
 **Implementation:**
-- [ ] 12 class vows per `[GDD] §7.1` (Red Tide, Duelist, Hunger / Slow Ash, Pyre, Kindling / Bastion, Thorn-Bearer, Long Dark / Last Hymn, Echoing Grief, Silence)
-- [ ] 11 story vows per §7.2 with source tags — with D4 edits: Ninth Sister's Vow (unified name), Warden's Oath, Ledger's Price, Grey Duelist, Twelve Tolls, The Turned Pour, Fixed Point, No Paper, **Oren's Post** ("while Braced, you cannot be Stunned" — grants Ch8-Mercy its missing reward), The Long Walk Down, The Counter-Voice (Unmake; hidden verse pool per §7.2/§4.4)
-- [ ] Keeper's Ring removed (relic Vigil's Ring is the canonical Ch8-Ruthless reward); Ysolde relic row removed
-- [ ] Story-vow availability flags (class-gated where specified, e.g. Ninth Sister's Vow = Cantor; Warden's Oath = Gravewarden)
-- [ ] Vow-effect op-codes validated against the T0.3 vocabulary
+- [x] 12 class vows per `[GDD] §7.1` (Red Tide, Duelist, Hunger / Slow Ash, Pyre, Kindling / Bastion, Thorn-Bearer, Long Dark / Last Hymn, Echoing Grief, Silence)
+- [x] 11 story vows per §7.2 with source tags — with D4 edits: Ninth Sister's Vow (unified name), Warden's Oath, Ledger's Price, Grey Duelist, Twelve Tolls, The Turned Pour, Fixed Point, No Paper, **Oren's Post** ("while Braced, you cannot be Stunned" — grants Ch8-Mercy its missing reward), The Long Walk Down, The Counter-Voice (Unmake; hidden verse pool per §7.2/§4.4)
+- [x] Keeper's Ring removed (relic Vigil's Ring is the canonical Ch8-Ruthless reward); Ysolde relic row removed
+- [x] Story-vow availability flags (class-gated where specified, e.g. Ninth Sister's Vow = Cantor; Warden's Oath = Gravewarden)
+- [x] Vow-effect op-codes validated against the T0.3 vocabulary
 **References:** `[GDD] §7.1`, `§7.2`, `[01] R5`, `[00] F7/F8/F25`, D4.
 **Dependencies:** ← T4.1; **← D4**.
 **Acceptance criteria:** exactly 23 vows; no effect-id shared by two rewards with the same source chapter (the `[01] §6` reward-integrity assert); story gating correct; Counter-Voice excluded from creation/pickers.
@@ -831,15 +833,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.5 — Items: the hand-written library with marks
-- [ ] T4.5 done
+- [x] T4.5 done (2026-10-18 — 40 items = 13+13+14 post-D4; one op-code mark each, all compiling through the new `engine/marks.js` (34 mark behaviors live; Rites-of-Passage activation trigger explicitly deferred to T5.4, effect live); affinity counted 6/3/10/6 — **N10**: the §8 note's ≥5/class claim fails for Cinder Witch (3), ruled advisory, routed to T4.12/owner; sources resolve 100%; F28 Blade tiers exact; mark-behavior scripted tests for all 40)
 
 **Goal:** all items from `[GDD] §8` (canon tables: 13 weapons / 13 vestments / 15 relics = 41) with stats, one mark each, affinity, and source — **no random stats ever** — including the F28 Blade wording and the D4 cuts (post-cut reconciliation to 40 items, see Implementation).
 **Implementation:**
-- [ ] Weapons per `[GDD] §8.1` (13 rows); Vestments §8.2 (13); Relics §8.3 (15 minus the cut Ysolde's Vow row per D4) — **post-D4 count reconciles to 40 items** (13+13+14); record the final target count in DECISIONS.md, update T0.5's tracker and the §16 diff accordingly, and note in the v1.0.1 spec that the §16 "41 items" figure becomes 40 unless the owner adds a replacement relic (owner's call at T0.1)
-- [ ] Mark op-codes: execute thresholds (Mace <35% HP), crit-scaling (Corvane's Blade per F28 provisional: ×1.6; ×1.8 <50%; ×2.0 <25%), start-of-fight states, immunities (Deaf Wax, Tide-Soaked), mitigation-cap raises (Ash-Glazed Brass 70%), Fatigue reduction (Thimble Coat −2), Ward-vs-DoT absorb (Founder's Leather), pity/first-win sources per D15
-- [ ] Affinity field per the "it fits" rule; ≥5 affinity items per class (T0.5 assert)
-- [ ] Source strings validated against the fight/choice/vendor registry (the `[01] §6` assert 4c)
-- [ ] Drowned Mantle source pinned: "guaranteed first Floor win" per D15/`[03] R6`
+- [x] Weapons per `[GDD] §8.1` (13 rows); Vestments §8.2 (13); Relics §8.3 (15 minus the cut Ysolde's Vow row per D4) — **post-D4 count reconciles to 40 items** (13+13+14); record the final target count in DECISIONS.md, update T0.5's tracker and the §16 diff accordingly, and note in the v1.0.1 spec that the §16 "41 items" figure becomes 40 unless the owner adds a replacement relic (owner's call at T0.1)
+- [x] Mark op-codes: execute thresholds (Mace <35% HP), crit-scaling (Corvane's Blade per F28 provisional: ×1.6; ×1.8 <50%; ×2.0 <25%), start-of-fight states, immunities (Deaf Wax, Tide-Soaked), mitigation-cap raises (Ash-Glazed Brass 70%), Fatigue reduction (Thimble Coat −2), Ward-vs-DoT absorb (Founder's Leather), pity/first-win sources per D15
+- [x] Affinity field per the "it fits" rule; ≥5 affinity items per class (T0.5 assert)
+- [x] Source strings validated against the fight/choice/vendor registry (the `[01] §6` assert 4c)
+- [x] Drowned Mantle source pinned: "guaranteed first Floor win" per D15/`[03] R6`
 **References:** `[GDD] §8.1–8.3`, `§8.4`, `[00] F14/F28`, `[03] R3/R6`, D4, D15.
 **Dependencies:** ← T4.1; D4, D15 (soft).
 **Acceptance criteria:** every row matches §8 tables (post-D4 diff documented); marks compile to op-codes; affinity minimums hold; source resolution 100%.

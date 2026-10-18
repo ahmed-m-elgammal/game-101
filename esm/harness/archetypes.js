@@ -148,7 +148,7 @@ const COMMON_FILLERS = ['steady_breath', 'purify', 'second_wind', 'vigils_rest',
 /** Deterministic cap-10 allocator. Always legal: spill order is canonical. */
 function allocate(clazz, creation, priority, level, tuning) {
   const cap = tuning.statCap;
-  const base = CLASSES[clazz].base;
+  const base = CLASSES[clazz].stats;
   const levelUps = { vig: 0, mig: 0, wit: 0, grd: 0, hst: 0 };
   let pts = tuning.pointsPerLevel * (level - 1);
   for (const k of [...priority, ...STAT_KEYS]) {
@@ -191,7 +191,7 @@ export function archetypeBuild(clazz, archetype, level, tuning) {
   if (sum !== tuning.creationPoints) {
     throw new Error(`archetype ${clazz}/${archetype}: creation sums ${sum}, expected ${tuning.creationPoints}`);
   }
-  const base = CLASSES[clazz].base;
+  const base = CLASSES[clazz].stats;
   for (const k of STAT_KEYS) {
     if (base[k] + creation[k] > tuning.statCap) {
       throw new Error(`archetype ${clazz}/${archetype}: creation pushes ${k} to ${base[k] + creation[k]} over cap ${tuning.statCap}`);

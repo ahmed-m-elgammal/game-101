@@ -23,6 +23,7 @@ import { evalRites } from './rites.js';
 import { getVerse, STRIKE, VERSE_BY_ID } from '../data/verses.js';
 import { RITES } from '../data/rites.js';
 import { chooseVerse } from './ai.js';
+import { markMods, mergeMods, statusBlocked, applyFightStartMarks, turnStartMarks, effectiveCost, applierCurseMult } from './marks.js';
 
 const DEBUFF_KEYS = ['bleed', 'burn', 'curse', 'fray', 'hush', 'stun'];
 
@@ -38,7 +39,9 @@ function toRuntime(sheet, side, tuning) {
     casts: {},
     firstCast: {}, // verse id → round of its first cast (Ilvane tie-break, F-FIGHT-3)
     flags: { candleUsed: false },
-    mods: vowMods(sheet, tuning),
+    // T4.5: vow mods + mark mods merged with documented combination rules
+    // (marks.js header). Gear-free builds produce byte-identical mods.
+    mods: mergeMods(vowMods(sheet, tuning), markMods(sheet, tuning), tuning),
     riteState: sheet.rite
       ? { name: RITES[sheet.rite]?.name || 'Rite', firedIdx: [], statMults: {}, flags: {}, learn: null }
       : null,
@@ -67,7 +70,15 @@ export function createSession(buildA, buildB, opts) {
   let order;
   if (a.sheet.stats.hst > b.sheet.stats.hst) order = [a, b];
   else if (b.sheet.stats.hst > a.sheet.stats.hst) order = [b, a];
-  else {
+  else if (a.mods.winTieFlips && !b.mods.winTieFlips) {
+    // Salt Widow's Comb (T4.5): the holder wins all turn-order ties. The
+    // Measure band is NOT consumed — the draw stream stays aligned per build.
+    tieBroken = true;
+    order = [a, b];
+  } else if (b.mods.winTieFlips && !a.mods.winTieFlips) {
+    tieBroken = true;
+    order = [b, a];
+  } else {
     tieBroken = true;
     order = m.band(2) === 0 ? [a, b] : [b, a];
   }
@@ -120,6 +131,11 @@ export function createSession(buildA, buildB, opts) {
     session.logLine('info', order[0].side, `${order[0].sheet.name} is faster and goes first.`);
   }
 
+  // T4.5 fight-start marks (Ward/Brace/Resolve grants) — after the §5.3
+  // start Resolve so a mark +1 lands on top, cap respected.
+  applyFightStartMarks(order[0], tuning, session.logLine);
+  applyFightStartMarks(order[1], tuning, session.logLine);
+
   return session;
 }
 
@@ -135,7 +151,9 @@ export function legalVerses(session, f) {
   for (const id of ids) {
     const v = getVerse(id);
     if (f.cooldowns[id] > 0) continue;
-    if (!canPay(f, v.cost, tuning)) continue;
+    // T4.5: mark pricing (Vigil's Ring / Orrery Lens) counts here too, or
+    // the legal list would disagree with submitChoice (the F-FIGHT-1 class).
+    if (!canPay(f, effectiveCost(f, v, tuning), tuning)) continue;
     if (v.isStrike) { out.push(v); continue; }
     if (f.riteState?.learn && id === f.riteState.learn?.verseId) { out.push(v); continue; }
     if (f.sheet.verses.includes(id)) out.push(v);
@@ -146,7 +164,7 @@ export function legalVerses(session, f) {
   // would hide a verse the engine accepts).
   const learned = f.riteState?.learn?.verseId;
   if (!locked && learned && (f.cooldowns[learned] || 0) <= 0
-    && canPay(f, getVerse(learned).cost, tuning)
+    && canPay(f, effectiveCost(f, getVerse(learned), tuning), tuning)
     && !out.some((v) => v.id === learned)) {
     out.push(getVerse(learned));
   }
@@ -159,7 +177,7 @@ export function legalVerses(session, f) {
 function poolForAI(session, f) {
   const legal = legalVerses(session, f);
   const learned = f.riteState?.learn?.verseId;
-  if (learned && f.cooldowns[learned] <= 0 && canPay(f, getVerse(learned).cost, session.tuning)) {
+  if (learned && f.cooldowns[learned] <= 0 && canPay(f, effectiveCost(f, getVerse(learned), session.tuning), session.tuning)) {
     const v = getVerse(learned);
     if (!legal.some((x) => x.id === learned)) legal.push(v);
   }
@@ -178,6 +196,9 @@ function afterDamage(session, actor, target, audit, verb) {
   }
   if (audit.thornsDealt > 0) {
     session.logLine('dot', actor.side, `Thorns answer: ${actor.sheet.name} takes ${audit.thornsDealt} true damage.`);
+  }
+  if (audit.markThorns > 0) {
+    session.logLine('dot', actor.side, `The gauntlets bite back: ${actor.sheet.name} takes ${audit.markThorns} true damage.`);
   }
   evalRitesNow(session, target);
   evalRitesNow(session, actor);
@@ -249,7 +270,11 @@ export function executeVerse(session, actor, target, verse) {
     if (session.state.over) break;
     switch (e.op) {
       case 'damage': {
-        const rawType = e.type === 'main' ? actor.sheet.damageType : (e.type || actor.sheet.damageType);
+        // Rites of Passage (T4.5): while the ember shift is live, the
+        // wielder's damage IS Ember regardless of the verse's type.
+        const rawType = actor.flags.emberShift
+          ? 'ember'
+          : (e.type === 'main' ? actor.sheet.damageType : (e.type || actor.sheet.damageType));
         const hits = e.hits || 1;
         const bleedStacks = target.statuses.bleed?.stacks || 0;
         for (let h = 0; h < hits; h++) {
@@ -288,6 +313,26 @@ export function executeVerse(session, actor, target, verse) {
           }
 
           if (afterDamage(session, actor, target, audit, verse.name)) return;
+
+          // T4.5 on-hit marks — deterministic, RNG consumed ONLY when the
+          // item is present (builds without the gear draw the same stream).
+          if (audit.land > 0) {
+            if (actor.mods.firstHitBleed && !actor.flags.firstHitBleedUsed) {
+              actor.flags.firstHitBleedUsed = true;
+              applyBleed(target, actor.mods.firstHitBleed, actor.sheet.stats.mig,
+                actor.mods.bleedCap, actor.mods.bleedTickBonus || 0, tuning.statusTurns.bleed);
+              session.logLine('status', actor.side, `The first cut opens deep — ${target.sheet.name} bleeds +${actor.mods.firstHitBleed}.`);
+            }
+            if (actor.mods.onHitHushChance && !statusBlocked(target, 'hush')) {
+              if (m.band(100) < Math.round(actor.mods.onHitHushChance * 100)) {
+                applyTimed(target, 'hush',
+                  tuning.statusTurns.hush + (actor.mods.hushTurnsBonus || 0),
+                  actor.mods.hushMod ?? tuning.hushMod,
+                  actor.mods.hushCritReduction ? { critCut: actor.mods.hushCritReduction } : undefined);
+                session.logLine('status', actor.side, `The fork finds the note — ${target.sheet.name} is Hushed.`);
+              }
+            }
+          }
         }
         // consume-after: Reap the Red / Blood Ledger empty the stacks
         if (e.consumeBleed && target.statuses.bleed) {
@@ -304,12 +349,23 @@ export function executeVerse(session, actor, target, verse) {
         // Source's tick bonus + the single-source bleed duration ride along
         // (F-STATUS-1 / F-STATUS-2: the victim's vow mods never decide the
         // tick, and tuning.statusTurns.bleed is live config, not dead text).
-        const st = applyBleed(target, e.stacks, actor.sheet.stats.mig, actor.mods.bleedCap,
+        // Wick-Cutter (T4.5): the FIRST bleed applied each fight +2 stacks.
+        let stacks = e.stacks;
+        if (actor.mods.bleedFirstApplyBonus && !actor.flags.bleedFirstApplyUsed) {
+          actor.flags.bleedFirstApplyUsed = true;
+          stacks += actor.mods.bleedFirstApplyBonus;
+          session.logLine('status', actor.side, `The Wick-Cutter opens wide (+${actor.mods.bleedFirstApplyBonus} stacks).`);
+        }
+        const st = applyBleed(target, stacks, actor.sheet.stats.mig, actor.mods.bleedCap,
           actor.mods.bleedTickBonus || 0, tuning.statusTurns.bleed);
         log('status', actor.side, `${target.sheet.name} bleeds — ${st.stacks} stacks.`);
         break;
       }
       case 'burn': {
+        if (statusBlocked(target, 'burn')) {
+          log('status', actor.side, `${target.sheet.name} is soaked through — the flame will not take.`);
+          break;
+        }
         const wit = actor.sheet.stats.wit;
         const existing = target.statuses.burn;
         let potency;
@@ -321,12 +377,22 @@ export function executeVerse(session, actor, target, verse) {
         }
         const turns = tuning.statusTurns.burn + (actor.mods.burnTurns || 0);
         // Kindling flag + side stored at application (F-STATUS-1)
-        applyBurn(target, potency, wit, turns, actor.mods.burnTickResolve || 0, actor.side);
+        const st = applyBurn(target, potency, wit, turns, actor.mods.burnTickResolve || 0, actor.side);
+        // Ysolde's Censer (T4.5): the applier pays 1 per tick of their own
+        // burn — strongest application stands, like the Kindling flag.
+        if (actor.mods.burnSelfTick) st.selfTick = Math.max(st.selfTick || 0, actor.mods.burnSelfTick);
         log('status', actor.side, `${target.sheet.name} burns for ${potency} per turn.`);
         break;
       }
       case 'curse': {
-        applyTimed(target, 'curse', tuning.statusTurns.curse + (actor.mods.curseTurns || 0));
+        if (statusBlocked(target, 'curse')) {
+          log('status', actor.side, `${target.sheet.name} cannot be cursed.`);
+          break;
+        }
+        // Duration is the APPLIER's; the DEPTH now travels with the status
+        // too (F-DATA-1 — same transport as Hush, F-STATUS-1).
+        applyTimed(target, 'curse', tuning.statusTurns.curse + (actor.mods.curseTurns || 0),
+          { curseMult: applierCurseMult(actor, tuning) });
         log('status', actor.side, `${target.sheet.name} is Cursed — their verses ring hollow.`);
         break;
       }
@@ -336,19 +402,32 @@ export function executeVerse(session, actor, target, verse) {
         break;
       }
       case 'hush': {
+        if (statusBlocked(target, 'hush')) {
+          log('status', actor.side, `The hush cannot find a hold on ${target.sheet.name}.`);
+          break;
+        }
         // The APPLIER's depth travels with the status (F-STATUS-1): a Silence
-        // Cantor's hush starves −3 even off the victim's own sheet.
-        applyTimed(target, 'hush', tuning.statusTurns.hush, actor.mods.hushMod ?? tuning.hushMod);
+        // Cantor's hush starves −3 even off the victim's own sheet. Orrery
+        // Robe adds +1 turn; the Choir-Seal's rider cuts the target's crits.
+        applyTimed(target, 'hush', tuning.statusTurns.hush + (actor.mods.hushTurnsBonus || 0),
+          actor.mods.hushMod ?? tuning.hushMod,
+          actor.mods.hushCritReduction ? { critCut: actor.mods.hushCritReduction } : undefined);
         log('status', actor.side, `${target.sheet.name} is Hushed.`);
         if (actor.mods.hushApplyResolve) {
           gain(actor, actor.mods.hushApplyResolve, tuning);
-          log('resolve', actor.side, `Silence feeds ${actor.sheet.name} +${actor.mods.hushApplyResolve} Resolve.`);
+          log('resolve', actor.side, `The hush feeds ${actor.sheet.name} +${actor.mods.hushApplyResolve} Resolve.`);
         }
         break;
       }
       case 'brace': {
-        applyTimed(actor, 'brace', tuning.statusTurns.brace);
+        // Warden's Cassock (T4.5): Brace lasts 1 extra turn; Bellmetal Maul:
+        // Brace also grants 4 Ward.
+        applyTimed(actor, 'brace', tuning.statusTurns.brace + (actor.mods.braceTurnsBonus || 0));
         log('status', actor.side, `${actor.sheet.name} braces.`);
+        if (actor.mods.braceGrantsWard) {
+          applyWard(actor, actor.mods.braceGrantsWard, tuning.statusTurns.ward);
+          log('status', actor.side, `The maul hums — ${actor.sheet.name} raises ${actor.mods.braceGrantsWard} Ward.`);
+        }
         break;
       }
       case 'ward': {
@@ -366,6 +445,10 @@ export function executeVerse(session, actor, target, verse) {
         break;
       }
       case 'stun': {
+        if (statusBlocked(target, 'stun')) {
+          log('status', actor.side, `The stun slides off ${target.sheet.name} — wax deafens the bell.`);
+          break;
+        }
         const ok = applyStun(target);
         if (ok) log('status', actor.side, `${target.sheet.name} is Stunned — the next bell is theirs to miss.`);
         else log('status', actor.side, `${target.sheet.name} is still reeling — the stun will not take twice yet.`);
@@ -481,9 +564,13 @@ function beginRound(session) {
   if (toll) session.logLine('bell', null, `TOLL IN ${toll}.`);
   const fd = fatigueDamage(s.round, session.tuning);
   if (fd > 0) {
-    session.order[0].statuses.fatigue = { amount: fd };
-    session.order[1].statuses.fatigue = { amount: fd };
-    session.logLine('bell', null, `The bell tolls — both fighters take ${fd} true damage this round.`);
+    // Thimble Coat (T4.5): take 2 less Fatigue damage per round, floor 0.
+    for (const f of session.order) {
+      const amt = Math.max(0, fd - (f.mods.fatigueReduction || 0));
+      f.statuses.fatigue = { amount: amt };
+    }
+    const reduced = session.order.some((f) => f.mods.fatigueReduction > 0);
+    session.logLine('bell', null, `The bell tolls — both fighters take ${fd} true damage this round.${reduced ? ' Padded coats soften it for some.' : ''}`);
   }
   startTurn(session);
 }
@@ -506,7 +593,8 @@ function startTurn(session) {
   }
   session.logLine('resolve', f.side, `${f.sheet.name}: ${gainLine} → ${f.resolve}.`);
 
-  // 2. turn-start effects: vow Long Dark
+  // 2. turn-start effects: vow Long Dark + mark layer (Drowned Mantle heal,
+  //    Bell of Nine Tolls round trigger, ember-shift expiry — T4.5)
   if (f.mods.turnStartHealPct > 0) {
     const heal = Math.round(f.maxHp * f.mods.turnStartHealPct);
     const actual = Math.min(f.maxHp - f.hp, heal);
@@ -516,15 +604,27 @@ function startTurn(session) {
       session.logLine('heal', f.side, `The Long Dark keeps ${f.sheet.name}: +${actual}.`);
     }
   }
+  turnStartMarks(session, f);
 
   // 3. status ticks, FIXED order: BURN → BLEED → THORN COUNTER → FATIGUE
+  //    Founder's Leather (T4.5): the holder's Ward absorbs 1 per DoT tick.
   const events = tickAtTurnStart(
     f, tuning, f.mods,
     (amount, key) => {
-      const dmg = trueTick(amount);
-      f.hp = Math.max(0, f.hp - dmg);
-      f.totals.taken += dmg;
-      session.logLine('dot', f.side, `${f.sheet.name} takes ${dmg} true damage (${key}).`);
+      let dmg = trueTick(amount);
+      if (f.mods.wardDotAbsorb > 0 && (key === 'burn' || key === 'bleed')
+        && f.statuses.ward && f.statuses.ward.pool > 0 && dmg > 0) {
+        const absorb = Math.min(f.mods.wardDotAbsorb, f.statuses.ward.pool, dmg);
+        f.statuses.ward.pool -= absorb;
+        dmg -= absorb;
+        if (f.statuses.ward.pool <= 0) f.statuses.ward = null;
+        session.logLine('ward', f.side, `The leather drinks ${absorb} of the ${key}.`);
+      }
+      if (dmg > 0) {
+        f.hp = Math.max(0, f.hp - dmg);
+        f.totals.taken += dmg;
+        session.logLine('dot', f.side, `${f.sheet.name} takes ${dmg} true damage (${key}).`);
+      }
     },
     (ev) => {
       if (ev.kind === 'resolve') {
@@ -533,6 +633,12 @@ function startTurn(session) {
         const who = ev.side ? session.fighters[ev.side] : f;
         gain(who, ev.amount, tuning);
         session.logLine('resolve', who.side, `Kindling: +${ev.amount} Resolve.`);
+      } else if (ev.kind === 'selfTick') {
+        // Ysolde's Censer: the burn's SOURCE pays 1 per tick (T4.5).
+        const who = ev.side ? session.fighters[ev.side] : f;
+        who.hp = Math.max(0, who.hp - ev.amount);
+        who.totals.taken += ev.amount;
+        session.logLine('dot', who.side, `The censer collects from ${who.sheet.name}: ${ev.amount} true.`);
       }
     }
   );
@@ -575,14 +681,16 @@ export function submitChoice(session, verseId) {
   const verse = VERSE_BY_ID.get(verseId);
   if (!verse) return { ok: false, error: `unknown verse: ${verseId}` };
   if (f.cooldowns[verseId] > 0) return { ok: false, error: 'on cooldown' };
-  if (!canPay(f, verse.cost, tuning)) return { ok: false, error: 'not enough Resolve' };
+  // T4.5 mark pricing: Vigil's Ring (Brace free) + Orrery Lens (second cast −1)
+  const cost = effectiveCost(f, verse, tuning);
+  if (!canPay(f, cost, tuning)) return { ok: false, error: 'not enough Resolve' };
   const isLearned = f.riteState?.learn?.verseId === verseId;
   if (!verse.isStrike && !f.sheet.verses.includes(verseId) && !isLearned) {
     return { ok: false, error: 'not in loadout' };
   }
   session.state.phase = 'resolving';
   session.pendingChoice = null;
-  if (verse.cost > 0) pay(f, verse.cost, tuning);
+  if (cost > 0) pay(f, cost, tuning);
   else if (verse.isStrike) { /* Strike is free and refunds +1 in effects */ }
   if (verse.cd) f.cooldowns[verseId] = verse.cd;
 

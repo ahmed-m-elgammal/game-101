@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| **Status** | **Phases 0–3 complete** — decision baseline, engine core, balance harness, and the Combat UI & First Playable Slice (`ui/` + `tools/build-site.js`): the Ashblade-vs-Bram tutorial is playable, offline, in a browser. Next: Phase 4 content data layer. |
+| **Status** | **Phases 0–4 (T4.1–T4.5) complete** — decision baseline, engine core, balance harness, the first playable slice, and the **Content Data Layer**: 42 verses / 24 vows / 40 items / 40 sources as validated frozen data, every item mark live in the fight engine, plus **47 generated art assets** (4 class portraits · 21 enemy portraits · 10 chapter plates · 12 item icons) wired into the duel panels, scene plates and title. Next: T4.6–T4.12 (the 21-fight roster, Rites, named Echoes, XP, the Calendar, the content QA gate). |
 | **Design doc (canon)** | [`THE-ASHEN-CHOIR-v1.0.1.md`](THE-ASHEN-CHOIR-v1.0.1.md) — v1.0 with every approved decision applied and tagged. The untouched v1.0 is kept alongside for diffing. |
 | **Decision record** | [`docs/DECISIONS.md`](docs/DECISIONS.md) — verdicts on D1–D32, N1–N4, micro-gates, assumption register, reconciliations (24 vows / 40 items / 10 shrines). |
 | **Roadmap** | [`TASKS.md`](TASKS.md) — 12 phases, 110 tasks, dependency-aware, written so each task can be implemented without guessing. |
@@ -22,6 +22,8 @@ docs/ENGINE_RULES.md           the determinism coding standard (CI-enforced)
 docs/SCHEMAS.md                frozen data shapes + Echo Code validation rules
 docs/INVENTORY.md              content inventory targets (CI-tracked)
 data/schemas/                  validators + fixtures (T0.3)
+data/                           the Phase-4 content layer: classes, verses, vows, items, sources, loaders (T4.1–T4.5)
+assets/art/                     the Phase-4 art wave: portraits, plates, icons (raw generations gitignored — scripts/gen-art.mjs regenerates)
 documentation/                 the review corpus (00–05)
 engine/ rng/ sim/ story/ ui/ store/   module layout per [GDD] §15 (Phase 1 fills them)
 tools/                         CI gates: check-bans, audit-amendment, check-inventory

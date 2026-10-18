@@ -33,6 +33,7 @@ export const BRAM = {
   vow: null,
   verses: ['sepulchral_spikes', 'hold_the_line', 'bulwark_strike', 'gravebind'],
   items: [],
+  art: 'bram', // assets/art/enemies/bram.webp (Phase 4 art wave)
 };
 
 /** §9.1 #7 — First Vespers, the Drowned Cantor (Act I boss, Rite fixture). */

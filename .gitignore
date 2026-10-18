@@ -17,3 +17,6 @@ Thumbs.db
 
 # The Ashen Choir: engine/, data/, story/, rng/, sim/, ui/, store/ are tracked.
 # assets/ binaries are tracked (self-hosted, ~1.9 MB total when Phase 8 lands).
+
+# Phase-4 art: raw generations are regenerable (scripts/gen-art.mjs); only shipped webp is committed
+assets/art/raw/

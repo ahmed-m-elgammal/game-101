@@ -42,7 +42,7 @@ function parkOn(s, side, guard = 200) {
 
 /** Legal L-player build (creation 4, level-ups exact). */
 function build(clazz, level, extra = {}) {
-  const base = CLASSES[clazz].base;
+  const base = CLASSES[clazz].stats;
   const creation = { vig: 0, mig: 0, wit: 0, grd: 0, hst: 0 };
   // spend creation legally: prefer the class main stat, respect cap
   let left = 4;

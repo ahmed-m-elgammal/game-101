@@ -184,12 +184,27 @@ test('golden: curse multiplies the attacker raw by the curse mult (×0.75)', () 
   const audit = resolveDamage(s, actor, target, STRIKE_SPEC, m, T);
   assert.strictEqual(audit.raw, 5.2 * audit.jitter * s.fortune * 0.75 * (audit.crit ? 1.5 : 1));
 });
-test('golden: Last Hymn curse depth (×0.6) comes from the attacker mods', () => {
+// F-DATA-1 (Phase 4, dated 2026-10-18): the OLD golden here pinned curse
+// depth to the CURSED fighter's own mods — which made Last Hymn (a Cantor's
+// OFFENSIVE vow) a self-penalty instead of deepening the Cantor's curses.
+// The re-test fixed the same transport for bleed/burn/hush (F-STATUS-1);
+// curse now carries its depth on the status at application time. The old
+// expectation (bare status + victim mods → ×0.6) was a mis-transport, not a
+// canon row — replaced by the transport goldens below.
+test('F-DATA-1 golden: bare curse (legacy shape) falls back to canon ×0.75', () => {
   const actor = fighter({ stats: { mig: 8 }, mods: { curseMult: 0.6 } });
-  actor.statuses.curse = { turns: 1 };
+  actor.statuses.curse = { turns: 1 }; // bare — no depth rider
   const target = fighter({ side: 'b', stats: { grd: 0 } });
   const audit = resolveDamage(state(), actor, target, STRIKE_SPEC, makeMeasures(mulberry32(17)), T);
-  assert.strictEqual(audit.raw, 5.2 * audit.jitter * audit.fortune * 0.6 * (audit.crit ? 1.5 : 1));
+  // engine order: raw → curse → jitter → fortune (float order matters, ULP)
+  assert.strictEqual(audit.raw, 5.2 * 0.75 * (audit.jitter * audit.fortune) * (audit.crit ? 1.5 : 1));
+});
+test('F-DATA-1 golden: the status depth rider drives the multiplier (×0.6)', () => {
+  const actor = fighter({ stats: { mig: 8 }, mods: { curseMult: 0.75 } });
+  actor.statuses.curse = { turns: 1, mod: { curseMult: 0.6 } }; // applier's Last Hymn rode along
+  const target = fighter({ side: 'b', stats: { grd: 0 } });
+  const audit = resolveDamage(state(), actor, target, STRIKE_SPEC, makeMeasures(mulberry32(17)), T);
+  assert.strictEqual(audit.raw, 5.2 * 0.6 * (audit.jitter * audit.fortune) * (audit.crit ? 1.5 : 1));
 });
 test('golden: bonusIfTargetBurning +50% (Conflagration) only while burning', () => {
   const spec = { base: 10, coefs: [{ stat: 'wit', c: 1.3 }], type: 'ember', bonusIfTargetBurning: 0.5 };

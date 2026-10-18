@@ -128,7 +128,7 @@ test('six Measure shapes: distributions match definitions (500k samples)', () =>
 
 test('§5.2 class base blocks total exactly 27', () => {
   for (const c of Object.values(CLASSES)) {
-    const sum = STAT_KEYS.reduce((s, k) => s + c.base[k], 0);
+    const sum = STAT_KEYS.reduce((s, k) => s + c.stats[k], 0);
     assert.strictEqual(sum, 27, c.id);
   }
 });
