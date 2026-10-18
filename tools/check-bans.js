@@ -15,6 +15,11 @@ const CODE_EXTS = new Set(['.js', '.mjs', '.cjs', '.html', '.css']);
 const PURITY_DIRS = ['engine', 'rng', 'sim'];
 const PURITY_BANS = [/Math\.random\s*\(/, /Date\.now\s*\(/, /new Date\s*\(\s*\)/, /toLocale/, /performance\.now\s*\(/];
 const NETWORK_BANS = [/\bfetch\s*\(/, /XMLHttpRequest/, /WebSocket/, /EventSource/, /require\s*\(\s*['"]https?['"]\s*\)/, /from\s+['"]https?['"]/, /\[\s*['"](fetch|XMLHttpRequest|WebSocket|EventSource)['"]\s*\]/];
+// T3.3/T3.9 XSS discipline: the browser UI renders prose/data through
+// text-content APIs ONLY (ui/dom.js is the single DOM door). These patterns
+// must never appear in ui/ source — prose is data, never markup.
+const UI_DIR = path.join(ROOT, 'ui');
+const UI_BANS = [/innerHTML/, /insertAdjacentHTML/, /outerHTML/, /document\.write/, /\beval\s*\(/, /new Function\s*\(/];
 
 function walk(dir, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -46,6 +51,11 @@ for (const f of all) {
   NETWORK_BANS.forEach((re, i) => {
     if (re.test(src)) { console.error(`NETWORK BAN ${i + 1} violated in ${path.relative(ROOT, f)}`); failures++; }
   });
+  if (f.startsWith(UI_DIR + path.sep)) {
+    UI_BANS.forEach((re, i) => {
+      if (re.test(src)) { console.error(`UI BAN ${i + 1} violated in ${path.relative(ROOT, f)}`); failures++; }
+    });
+  }
 }
 if (failures) { console.error(`check-bans: FAIL (${failures} violation(s))`); process.exit(1); }
 console.log(`check-bans: OK (${all.length} files scanned)`);

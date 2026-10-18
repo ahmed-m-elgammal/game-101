@@ -15,7 +15,9 @@
     "harness:campaign": "node tools/harness.js --campaign",
     "balance": "node tools/asserts/balance.js --quick",
     "balance:full": "node tools/asserts/balance.js",
-    "roster": "node tools/asserts/roster.js"
+    "roster": "node tools/asserts/roster.js",
+    "site": "node tools/build-site.js",
+    "site:dashboard": "node tools/build-site.js --out /home/z/my-project/public/game"
   },
   "engines": {
     "node": ">=18"

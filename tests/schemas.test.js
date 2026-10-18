@@ -20,9 +20,19 @@ const FIXTURE_KINDS = [
   ['class', 'class'], ['verse', 'verse'], ['vow_class', 'vow'], ['vow_story', 'vow'],
   ['item', 'item'], ['enemy', 'enemy'], ['enemy_boss', 'enemy'], ['rite', 'rite'],
   ['namedEcho', 'namedEcho'], ['chapter', 'chapter'], ['choice', 'choice'],
+  ['scene', 'scene'],
   ['objective', 'objective'], ['deed', 'deed'], ['vendorEntry', 'vendorEntry'],
   ['saveState', 'saveState'], ['echoCode_v1', 'echoCode'], ['echoCode_v2', 'echoCode'],
 ];
+
+test('scene fixtures agree with the ui/scene fixture module (same node)', () => {
+  // the browser UI ships its own copy of the demo node; the schema and the
+  // UI must never drift apart
+  const { CH1_OPENING } = require('../ui-scene-fixture.cjs');
+  const sceneFixture = fixtures.scene;
+  assert.strictEqual(sceneFixture.id, CH1_OPENING.id);
+  assert.strictEqual(JSON.stringify(sceneFixture.choices), JSON.stringify(CH1_OPENING.choices));
+});
 
 test('every frozen schema has a valid fixture', () => {
   for (const [fk, kind] of FIXTURE_KINDS) {

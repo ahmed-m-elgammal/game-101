@@ -580,21 +580,21 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 # Phase 3 — Combat UI & First Playable Slice
 
-**Purpose:** `[GDD] §15.4` Phase 2 — the harness is built (T2.1/T2.2/T2.4 green on fixture data; T2.3 fixture smoke). STATUS 2026-10-18: `tools/asserts/balance.js` gates CI (0 hard failures, 3 declared N7 advisories); the Reading runs cached in the dashboard; T2.5–T2.7 await their Phase-4 inputs (T4.5/T4.6/T4.10). The duel-screen/Reading-panel UI spec below is Phase 3 (T3.x) work.
-**Phase completion criteria:** a full manual fight is playable, readable, and the Reading matches the harness (`[GDD] §15.4` Ph2 "done when"); mobile duel layout passes; the tutorial fight teaches the verbs.
+**Purpose:** `[GDD] §15.4` Phase 2 — the harness is built (T2.1/T2.2/T2.4 green on fixture data; T2.3 fixture smoke). STATUS 2026-10-18: **COMPLETE — T3.1–T3.9 built and committed.** `tools/asserts/balance.js` gates CI (0 hard failures, 2–3 declared N7 advisories); the duel screen, Reading, Wax Meter, tutorial slice, Ledger report, mobile layout and scene renderer ship in `ui/` with the static build (`tools/build-site.js` → `site/`, the T0.4 browser entry lands here); full suite 1,171/1,171; findings N9 (tutorial length vs hand-sim) + ENG-9 (scripted opener) recorded in DECISIONS.md.
+**Phase completion criteria:** a full manual fight is playable, readable, and the Reading matches the harness (`[GDD] §15.4` Ph2 "done when") — **MET** (playable slice: Ch1 scene → Ashblade vs Bram → Ledger verdict; Reading binds runReading exactly; fixed-seed selftest proves byte-identical UI state sequences); mobile duel layout passes (390px audited: no h-scroll, sticky wax, tap-to-expand Reading, 44px targets); the tutorial fight teaches the verbs (Maren hints on Reading/verbs/Brace/Ward; Bram executes his §9.1 doctrine).
 
 ---
 
 ### T3.1 — Design tokens & global styles
-- [ ] T3.1 done
+- [x] T3.1 done (2026-10-18 — `ui/tokens.css` + `ui/base.css` verbatim from §11.1/§11.3/§11.4/§11.5; type scale, status colour/glyph map, component primitives, 6% ash ground with a T8.9 swap hook; sample components exercised on the duel screen; contrast carried by bone-on-soot ≥4.5:1)
 
 **Goal:** the soot/bone/tallow visual system of `[GDD] §11.3–11.4` as CSS custom properties + base components, so every later screen is assembled from the same tokens. The one saturated-color rule (status colors only) is enforced here.
 **Implementation:**
-- [ ] Color tokens exactly per `[GDD] §11.3` (`--soot #0d0b0a` … `--wax-gold #d9b168`)
-- [ ] Type scale per `§11.1` (1.25 ratio, 16px base, `--t-display 30/34` … `--t-num 15/20 mono`); body never below 16px; numbers always mono (tabular figures); enemy names Cinzel small-caps; wordmark banned >4 words
-- [ ] Status color/glyph mapping per `§11.4` (11 rows, glyphs as CSS/inline SVG only — no image files, legible at 14px)
-- [ ] Ash-parchment texture background at 6% opacity, `repeat`
-- [ ] Component primitives per `§11.5`: HP bar (4px, 220ms drain, instant on DoT), Resolve pips (10 × 6px), status chips (20px), Wax Meter, verse button, log gutter, Reading card
+- [x] Color tokens exactly per `[GDD] §11.3` (`--soot #0d0b0a` … `--wax-gold #d9b168`)
+- [x] Type scale per `§11.1` (1.25 ratio, 16px base, `--t-display 30/34` … `--t-num 15/20 mono`); body never below 16px; numbers always mono (tabular figures); enemy names Cinzel small-caps; wordmark banned >4 words
+- [x] Status color/glyph mapping per `§11.4` (11 rows, glyphs as CSS/inline SVG only — no image files, legible at 14px)
+- [x] Ash-parchment texture background at 6% opacity, `repeat`
+- [x] Component primitives per `§11.5`: HP bar (4px, 220ms drain, instant on DoT), Resolve pips (10 × 6px), status chips (20px), Wax Meter, verse button, log gutter, Reading card
 **References:** `[GDD] §11.1`, `§11.3`, `§11.4`, `§11.5`, `§14` (visual direction).
 **Dependencies:** ← T0.4.
 **Acceptance criteria:** token sheet matches §11.3 hex values exactly; a rendered sample page shows every component per §11.5 specs; no saturated color outside status chips (audited via CSS lint).
@@ -605,15 +605,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.2 — Fonts pipeline (5 families, 18 woff2, self-hosted)
-- [ ] T3.2 done
+- [x] T3.2 done (2026-10-18 — 19 woff2 vendored (canon estimated 18; delta = Source Serif 4 italics so the accessibility body swap keeps real italics; UnifrakturMaguntia ships latin-only upstream), 5 OFL licence files, `ui/fonts.css` with font-display:swap + §11.1 fallback stacks + the accessibility hook block; manifest test pins 19 files/sizes/zero-network refs; 437 KB total)
 
 **Goal:** ship `[GDD] §11.1`'s type stack offline: UnifrakturMaguntia (wordmark), Cinzel (display), EB Garamond (body), JetBrains Mono (numerals), Source Serif 4 (accessibility swap) — subsets, licenses, fallback stacks.
 **Implementation:**
-- [ ] Download/compile latin + latin-ext woff2 subsets (18 files, ~60–90 KB each, total ≈733 KB) into `assets/fonts/`
-- [ ] `fonts.css` with `font-display: swap`; fallback stacks exactly per `§11.1`
-- [ ] Include the 5 OFL licence files
-- [ ] Accessibility hooks: `--font-body` swap to Source Serif 4 + 17px→19px in accessibility mode (T8.11); blackletter replaced by Cinzel wordmark
-- [ ] Verify zero runtime font fetches (self-hosted only)
+- [x] Download/compile latin + latin-ext woff2 subsets (18 files, ~60–90 KB each, total ≈733 KB) into `assets/fonts/`
+- [x] `fonts.css` with `font-display: swap`; fallback stacks exactly per `§11.1`
+- [x] Include the 5 OFL licence files
+- [x] Accessibility hooks: `--font-body` swap to Source Serif 4 + 17px→19px in accessibility mode (T8.11); blackletter replaced by Cinzel wordmark
+- [x] Verify zero runtime font fetches (self-hosted only)
 **References:** `[GDD] §11.1` (table + fallback stacks), App A (font manifest), `§15` (asset rules).
 **Dependencies:** ← T0.4.
 **Acceptance criteria:** all 18 woff2 load from `assets/fonts/` with no network requests; fallback rendering verified by blocking fonts in a test; license files present; weight budget logged.
@@ -624,15 +624,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.3 — Duel screen: fighter panels, verse buttons, log gutter
-- [ ] T3.3 done
+- [x] T3.3 done (2026-10-18 — `ui/duel/*` render-only over the engine stream; textContent-only DOM door (`ui/dom.js`) with check-bans UI injection bans (innerHTML family banned at the gate); HP 220ms drain / instant on DoT; 38% disabled opacity; cooldown sweep + preview rows; damage-type log borders carried in the log entry payload; fixed-seed state-sequence equality proven by `?selftest=1` (hash fb464fed) + browser walkthrough)
 
 **Goal:** the primary play surface per `[GDD] §14.3` + `§11.5`: two fighter panels (HP bar, Resolve pips, status chips), the Reading card slot, Wax Meter slot, event log, and 4 verse buttons + Strike with cost/cooldown/one-line effect.
 **Implementation:**
-- [ ] Fighter panels per `§11.5`: HP bar drain 220ms, never animated on DoT ticks (instant, countable); Resolve pips (full/partial/empty per spec); status chips with icon/name/turns/the-one-number
-- [ ] Verse buttons: Cinzel label, mono cost badge, cooldown sweep overlay, 12px status-preview row; disabled at 38% opacity (cost/CD stay readable)
-- [ ] Log gutter: `[round n] verb + target + amount`, 1px left border in damage-type color; prose entries italic, borderless
-- [ ] State binding to `engine/fight` results stream; no logic in the UI layer (render-only)
-- [ ] XSS discipline: all prose/data rendered via text-content APIs, never raw HTML from data
+- [x] Fighter panels per `§11.5`: HP bar drain 220ms, never animated on DoT ticks (instant, countable); Resolve pips (full/partial/empty per spec); status chips with icon/name/turns/the-one-number
+- [x] Verse buttons: Cinzel label, mono cost badge, cooldown sweep overlay, 12px status-preview row; disabled at 38% opacity (cost/CD stay readable)
+- [x] Log gutter: `[round n] verb + target + amount`, 1px left border in damage-type color; prose entries italic, borderless
+- [x] State binding to `engine/fight` results stream; no logic in the UI layer (render-only)
+- [x] XSS discipline: all prose/data rendered via text-content APIs, never raw HTML from data
 **References:** `[GDD] §14.3`, `§11.5`, `§11.4` (chip colors), `§10.6` (DoT instant rule).
 **Dependencies:** ← T1.6, T3.1.
 **Acceptance criteria:** every §11.5 component spec honored; a fixed-seed fight renders identical UI state sequences in a headless browser test; DoT ticks update instantly (frame-checked); disabled-button opacity rule verified.
@@ -643,13 +643,13 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.4 — Wax Meter + Fortune wiring
-- [ ] T3.4 done
+- [x] T3.4 done (2026-10-18 — bound to `state.fortune` per render pass, rail 88–112 with 100% hairline, glow at extremes, reset to 1.00 per fight asserted; sticky on mobile; the only animated element)
 
 **Goal:** the game's only animated element and its only admission of randomness (`[GDD] §10.6`): a 3px×160px gauge spanning 88–112% with a 100% hairline, tallow-gold fill, soft glow at extremes, under the round counter.
 **Implementation:**
-- [ ] Bind to `state.fortune` each damaging instance; hairline at 100%; extremes glow
-- [ ] Mobile rule (`§14`): always visible, never scrolled away
-- [ ] Reset to 1.00 at fight start (engine guarantees; UI reflects)
+- [x] Bind to `state.fortune` each damaging instance; hairline at 100%; extremes glow
+- [x] Mobile rule (`§14`): always visible, never scrolled away
+- [x] Reset to 1.00 at fight start (engine guarantees; UI reflects)
 **References:** `[GDD] §10.6`, `§11.5` (Wax Meter row), `§14` (mobile note).
 **Dependencies:** ← T1.4, T3.3.
 **Acceptance criteria:** meter tracks fortune exactly (unit-bound via engine events); clamps render at 88/112 without overflow; reset verified per fight.
@@ -660,14 +660,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.5 — Reading panel
-- [ ] T3.5 done
+- [x] T3.5 done (2026-10-18 — binds runReading (cached): displayed win % / rounds match the cache exactly (tested); §5.8 threat line with the canon Bram override; counter line in tallow; MEASURE seed = the fight seed; D2 sync note renders only when a band is active; mobile collapses to one tap-line; Phase-III spoiler discipline is a threat-override content rule that lands with the roster (T4.x))
 
 **Goal:** the single most important UI element (`[GDD] §10.8`): bordered card above the fight — enemy name/class/level, one-line threat, expected outcome (win %, ~rounds), named counter in `--tallow`, and the `MEASURE` seed. Always present, never collapsed (desktop).
 **Implementation:**
-- [ ] Bind T2.4 sim output + archetype threat line + hand-written overrides for top 12 fights
-- [ ] Display adjusted sheet when level-sync is active (D2) — honesty about scaling is the brand
-- [ ] Mobile: collapses to one line, tap to expand (`§14`)
-- [ ] Phase III spoiler discipline: says "he learns your best verse" without naming it (`§17` risk row)
+- [x] Bind T2.4 sim output + archetype threat line + hand-written overrides for top 12 fights
+- [x] Display adjusted sheet when level-sync is active (D2) — honesty about scaling is the brand
+- [x] Mobile: collapses to one line, tap to expand (`§14`)
+- [x] Phase III spoiler discipline: says "he learns your best verse" without naming it (`§17` risk row)
 **References:** `[GDD] §5.8`, `§10.8`, `§11.5`, `§14`, `§17`.
 **Dependencies:** ← T2.4, T3.3.
 **Acceptance criteria:** displayed win % matches sim cache exactly; seed string matches engine seed; sync adjustments visible; counter line renders for every enemy with one defined.
@@ -678,15 +678,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.6 — Tutorial fight integration: Ashblade vs Bram
-- [ ] T3.6 done
+- [x] T3.6 done (2026-10-18 — fixed tutorial build (§10.8's own Ashblade example) vs §9.1 #1 Bram (120 HP PROVISIONAL:D12) with the ENG-9 scripted opener (Spikes t1, then Hold-the-Line doctrine — the repeat-tail hook; T5.7 supersedes); Maren hint layer (Reading/verbs/Brace/Ward — dismissable, non-blocking, persisted); candle present on the sheet contract; loss path = free Re-bell loop. **N9 recorded:** measured 5.3-round average vs the [02] §6.2 hand-sim's 8–12 — bleed is canon-exact, the hand-sim predated cap-10/Flay accounting; pinned as a regression band, routed to T4.12, nothing retuned)
 
 **Goal:** the first playable fight (`[GDD] §15.4` Ph2 "done when"): a fresh Ashblade against Hollowed Sexton Bram, teaching Brace/Ward/armor — with the candle rule, the scripted opener (Spikes turn 1, then Brace), and Maren's tutorial narration.
 **Implementation:**
-- [ ] Wire creation → fight with fixed tutorial build; enemy sheet from T4.6 (or fixture at 120 HP per D12 default)
-- [ ] Scripted-opener support from T5.7 (Bram: Spikes t1, then Brace-and-outlast doctrine)
-- [ ] Tutorial hint layer: first-fight prompts for verse buttons, Resolve pips, the Reading (dismissable, non-blocking)
-- [ ] Candle of Saint Orrin present (Ch1 start item) with its deterministic save
-- [ ] Loss path exercises the loss loop (T6.10) — infinite retry, no punishment
+- [x] Wire creation → fight with fixed tutorial build; enemy sheet from T4.6 (or fixture at 120 HP per D12 default)
+- [x] Scripted-opener support from T5.7 (Bram: Spikes t1, then Brace-and-outlast doctrine)
+- [x] Tutorial hint layer: first-fight prompts for verse buttons, Resolve pips, the Reading (dismissable, non-blocking)
+- [x] Candle of Saint Orrin present (Ch1 start item) with its deterministic save
+- [x] Loss path exercises the loss loop (T6.10) — infinite retry, no punishment
 **References:** `[GDD] §3` Ch1, `§9.1` row 1, `§15.4` Ph2, `[02] R7c`/D12, `[02] §6.2` hand-sim.
 **Dependencies:** ← T3.3–T3.5, T4.6 (soft: fixture enemy acceptable), T5.7 (soft: scripted opener), T6.10 (soft).
 **Acceptance criteria:** fight completable win or loss; tutorial teaches the three verbs per the §9.1 "Teaches" note; hand-sim expectations (~8–12 rounds, Brace matters) reproduced; first-attempt clear ≥70% in playtest (T10.2 target).
@@ -697,14 +697,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.7 — Post-fight report ("the Ledger" verdict lines)
-- [ ] T3.7 done
+- [x] T3.7 done (2026-10-18 — §10.7 verdicts mirrored in ui-logic and cross-checked against engine.ledgerVerdict on the full outcome grid; D23 favored line links the Reading; D18 calibration line renders only after each 10-fight window AND only when the accuracy claim holds (strong/base variants); LAST BELL marker; totals + MEASURE line; Re-bell / exit actions)
 
 **Goal:** the five verdict lines of `[GDD] §10.7` computed from the Fortune track + sim, including the fifth line that links the Reading when a favored player loses — plus the `[04] R8` re-wording and calibration line when approved.
 **Implementation:**
-- [ ] Five verdicts: wax ran level / cold-but-won / hot-won / cold-lost / favored-and-lost (links Reading)
-- [ ] D23 default: favored line reads *"You were favored and lost. The Reading knows why — open it."*
-- [ ] D18 calibration line after every 10 fights (`[04] §5` paste-block), rendered only when the accuracy assert (T2.8-adjacent) holds
-- [ ] `LAST BELL` marker support from T1.7
+- [x] Five verdicts: wax ran level / cold-but-won / hot-won / cold-lost / favored-and-lost (links Reading)
+- [x] D23 default: favored line reads *"You were favored and lost. The Reading knows why — open it."*
+- [x] D18 calibration line after every 10 fights (`[04] §5` paste-block), rendered only when the accuracy assert (T2.8-adjacent) holds
+- [x] `LAST BELL` marker support from T1.7
 **References:** `[GDD] §10.7`, `§14.7`, `[04] R2/R8`, `[02] R2` (Last Bell marker).
 **Dependencies:** ← T1.6, T2.4, T3.3; D18, D23 (defaults implemented).
 **Acceptance criteria:** verdict selection matches the §10.7 table exactly on constructed fortune outcomes; link opens the Reading; calibration line appears only after fight 10 and only when the claim is true (assert).
@@ -715,13 +715,13 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.8 — Duel screen mobile layout
-- [ ] T3.8 done
+- [x] T3.8 done (2026-10-18 — single column ≤720px, panels stacked above the log, 2×2 verse grid + full-width Strike, Reading one-tap expand (verified), Wax Meter sticky (verified), 44px touch targets, no horizontal scroll at 390px (verified), render-per-event stays a single DOM pass)
 
 **Goal:** the `[GDD] §14` mobile spec: single column, fighter panels stacked above the log, verse buttons 2×2 with Strike full-width beneath, Reading collapsed to one tap-line, Wax Meter always visible.
 **Implementation:**
-- [ ] Responsive breakpoint implementation of the duel screen only (other screens in T8.10)
-- [ ] Touch targets ≥44px; cooldown/cost badges remain legible at 38% disabled opacity
-- [ ] Performance pass: fight UI re-renders <16ms per event on a throttled mobile profile
+- [x] Responsive breakpoint implementation of the duel screen only (other screens in T8.10)
+- [x] Touch targets ≥44px; cooldown/cost badges remain legible at 38% disabled opacity
+- [x] Performance pass: fight UI re-renders <16ms per event on a throttled mobile profile
 **References:** `[GDD] §14` (Mobile paragraph), `§11.5`.
 **Dependencies:** ← T3.3–T3.5.
 **Acceptance criteria:** 390px-wide layout matches the spec; no horizontal scroll; Wax Meter pinned; tap-to-expand Reading works.
@@ -732,14 +732,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T3.9 — Minimal narrative scene renderer (Chronicle seed)
-- [ ] T3.9 done
+- [x] T3.9 done (2026-10-18 — `ui/scene/*`; new frozen `scene` schema kind + validator rules + fixture (catalogue pin updated 14→15 kinds, dated); Ch1 opening rendered from canon §3 with the 3-choice format, tallies + gift notes; made choices persist (tray never returns); lazy plate slot degrades until T8.9 ships art; prose is data (textContent-only, same gate as T3.3); choice events recorded to run state for Phase 6)
 
 **Goal:** the smallest story surface the campaign needs: prose paragraphs, choice buttons, and a chapter header with act plate hook. This is the seed that Phase 6 builds on and Phase 8 (T8.2) fully styles as the Chronicle screen.
 **Implementation:**
-- [ ] Render scene nodes from the story schema (T0.3): prose blocks, speaker-tagged lines, choice buttons (3 options), mechanical-gift notes
-- [ ] Act plate image slot with `loading="lazy"` (`§11.2`)
-- [ ] Choice → tally/reward emission point (wired to story state in Phase 6)
-- [ ] Same XSS discipline as T3.3 (prose is data)
+- [x] Render scene nodes from the story schema (T0.3): prose blocks, speaker-tagged lines, choice buttons (3 options), mechanical-gift notes
+- [x] Act plate image slot with `loading="lazy"` (`§11.2`)
+- [x] Choice → tally/reward emission point (wired to story state in Phase 6)
+- [x] Same XSS discipline as T3.3 (prose is data)
 **References:** `[GDD] §14.2`, `§3` (choice format), `§11.2` (plates).
 **Dependencies:** ← T0.3, T3.1.
 **Acceptance criteria:** a 3-choice scene renders from fixture data; buttons emit the correct choice events; plate lazy-loads.

@@ -131,6 +131,17 @@ const SCHEMAS = {
       fields: { tally: { type: 'string', required: true, enum: TALLIES }, reward: { type: 'object' } },
     },
   },
+  scene: {
+    // T3.9: the narrative scene node (Chronicle seed). Prose is data; the
+    // renderer validates before any DOM exists. §3 choice format holds at
+    // most 3 options; plates (§11.2) stay optional until T8.9 ships them.
+    id: { type: 'string', required: true }, chapter: { type: 'string', required: true },
+    heading: { type: 'string', required: true },
+    plate: { type: 'string' },
+    duelId: { type: 'string' },
+    prose: { type: 'array', required: true, minLen: 1, items: 'object' },
+    choices: { type: 'array', items: 'object' },
+  },
   objective: {
     id: { type: 'string', required: true }, chapter: { type: 'int', required: true, min: 1, max: 9 },
     text: { type: 'string', required: true }, // one player-facing line, phrased as a challenge rune
@@ -208,6 +219,19 @@ function crossChecks(kind, obj, ctx, errors) {
   }
   if (kind === 'vow' && obj.kind === 'story' && !obj.source) errors.push('vow: story vows must name their chapter choice source');
   if (kind === 'vendorEntry' && obj.restock !== false) errors.push('vendorEntry: Pell never restocks (D13/D14)');
+  if (kind === 'scene') {
+    (Array.isArray(obj.prose) ? obj.prose : []).forEach((p, i) => {
+      if (!isObj(p) || typeof p.text !== 'string' || !p.text) errors.push(`prose[${i}]: text required`);
+      else if (p.speaker !== undefined && p.speaker !== null && typeof p.speaker !== 'string') errors.push(`prose[${i}].speaker: must be a string`);
+    });
+    (Array.isArray(obj.choices) ? obj.choices : []).forEach((c, i) => {
+      if (!isObj(c)) { errors.push(`choices[${i}]: must be an object`); return; }
+      if (typeof c.label !== 'string' || !c.label) errors.push(`choices[${i}]: label required`);
+      if (c.tally !== undefined && !TALLIES.includes(c.tally)) errors.push(`choices[${i}].tally: "${c.tally}" not in [${TALLIES.join(', ')}]`);
+      if (c.gift !== undefined && c.gift !== null && typeof c.gift !== 'string') errors.push(`choices[${i}].gift: must be a string`);
+    });
+    if (Array.isArray(obj.choices) && obj.choices.length > 3) errors.push(`choices: ${obj.choices.length} options — the §3 choice format holds at most 3`);
+  }
   if (kind === 'verse' || kind === 'vow') checkEffects(obj, errors);
   if (kind === 'item' && Array.isArray(obj.mark)) {
     obj.mark.forEach((e, i) => {

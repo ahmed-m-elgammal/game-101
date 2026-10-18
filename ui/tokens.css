@@ -1,0 +1,69 @@
+/*
+ * tokens.css — T3.1: the soot/bone/tallow design-token sheet.
+ * Every value below is verbatim from [GDD] §11.1 (type), §11.3 (colour),
+ * §11.4 (status mapping). The one saturated-colour rule (§11.3): the ONLY
+ * saturated colours in the entire UI are the status colours — everything
+ * else is a soot/bone/tallow neutral. Enforced by the tools/check-bans.js
+ * UI pass and audited on the sample page.
+ */
+
+:root {
+  /* -- §11.3 colour tokens (exact hex) ---------------------------------- */
+  --soot: #0d0b0a;        /* page background */
+  --soot-2: #171412;      /* panel background */
+  --soot-3: #221d1a;      /* raised panel, card */
+  --bone: #e6ded0;        /* primary text */
+  --bone-dim: #9d948a;    /* secondary text, labels */
+  --tallow: #e8c88a;      /* accent: HP bar, the candle, focus rings */
+  --tallow-glow: #f6e3bb; /* hover, emphasis */
+  --ember: #e0762f;       /* Burn, furnace, Act II  (status-only) */
+  --crimson: #a8322e;     /* Bleed, damage taken, Act I (status-only) */
+  --violet: #7a5aa8;      /* Curse, Shade, Act III  (status-only) */
+  --verdigris: #5d8071;   /* Ward, healing, Hush    (status-only) */
+  --rust: #8a4b2a;        /* Fray, thorns, neutral warning (status-only) */
+  --wax-gold: #d9b168;    /* the Wax Meter fill */
+
+  /* -- §11.1 fallback stacks (verbatim) --------------------------------- */
+  --font-wordmark: "UnifrakturMaguntia", "Luminari", serif;
+  --font-display: "Cinzel", "Trajan Pro", "Optima", Georgia, serif;
+  --font-body: "EB Garamond", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* -- §11.1 type scale (1.25 minor third, 16px base) ------------------- */
+  --t-display-size: 30px;  --t-display-line: 34px;   /* chapter titles */
+  --t-title-size: 22px;    --t-title-line: 28px;     /* enemy names, act titles */
+  --t-sub-size: 18px;      --t-sub-line: 24px;       /* section headers, buttons */
+  --t-body-size: 17px;     --t-body-line: 27px;      /* prose, log entries */
+  --t-small-size: 14px;    --t-small-line: 20px;     /* item lore, tooltips */
+  --t-micro-size: 12px;    --t-micro-line: 16px;     /* labels, chip text, footnotes */
+  --t-num-size: 15px;      --t-num-line: 20px;       /* all numbers, mono, tabular */
+
+  /* -- §11.4 status colour mapping (chip border/fill/glyph) ------------- */
+  --st-bleed: var(--crimson);
+  --st-burn: var(--ember);
+  --st-curse: var(--violet);
+  --st-fray: var(--rust);
+  --st-hush: var(--bone-dim);      /* chip face soot-3 on bone-dim per §11.4 */
+  --st-brace: var(--verdigris);
+  --st-ward: var(--verdigris);     /* outline variant */
+  --st-thorns: var(--rust);
+  --st-stun: var(--bone-dim);
+  --st-fatigue: var(--bone-dim);
+  --st-rite: var(--tallow);
+
+  /* -- texture hook: the ash-parchment plate is a Phase-8 asset (T8.9).
+     Until it lands, an equivalent CSS grain renders at the same 6%.
+     The variable lets base.css swap in the real tile with zero churn. --- */
+  --texture-url: none;
+
+  /* -- §11.5 component geometry ----------------------------------------- */
+  --hp-height: 4px;
+  --hp-drain: 220ms;       /* drain animation; DoT ticks bypass it (instant) */
+  --pip-size: 6px;
+  --pip-gap: 1px;
+  --chip-height: 20px;
+  --wax-height: 3px;
+  --wax-width: 160px;
+  --btn-disabled-opacity: 0.38; /* disabled verses stay readable (§11.5) */
+  --touch-min: 44px;            /* §14 mobile touch-target floor */
+}

@@ -99,8 +99,12 @@ function createSession(buildA, buildB, opts) {
     pendingChoice: null, // fighter awaiting a manual verse choice
   };
 
-  session.logLine = (kind, side, text) => {
-    session.log.push({ r: session.state.round, kind, side, text });
+  session.logLine = (kind, side, text, extra) => {
+    const entry = { r: session.state.round, kind, side, text };
+    // Presentation-only extras (e.g. { color: rawType } for the log gutter's
+    // damage-type border, §11.5). Never read back by the math.
+    if (extra) Object.assign(entry, extra);
+    session.log.push(entry);
   };
   if (opts.silent) {
     // Harness mode (T2.1/T2.4): no log lines. Logging never feeds back into
@@ -268,7 +272,11 @@ function executeVerse(session, actor, target, verse) {
           if (audit.crit) bits.push('CRIT ×' + (actor.mods.critMult || tuning.critMult));
           if (audit.warded > 0) bits.push('ward ' + audit.warded);
           const hitName = hits > 1 ? ` (hit ${h + 1}/${hits})` : '';
-          log('damage', `${actor.sheet.name}'s ${verse.name} hits ${target.sheet.name} for ${audit.land}${rawType === 'true' ? ' true' : ' ' + rawType}${hitName}${bits.length ? ' [' + bits.join(', ') + ']' : ''}.`);
+          // the damage line carries its type so the log gutter can draw the
+          // 1px left border in the damage type's colour (§11.5)
+          session.logLine('damage', actor.side,
+            `${actor.sheet.name}'s ${verse.name} hits ${target.sheet.name} for ${audit.land}${rawType === 'true' ? ' true' : ' ' + rawType}${hitName}${bits.length ? ' [' + bits.join(', ') + ']' : ''}.`,
+            { color: rawType });
 
           // lifesteal: verse pct + vow pct, on damage that reached HP
           const ls = (e.lifestealPct || 0) + (actor.mods.lifestealPct || 0);
@@ -598,6 +606,25 @@ function step(session) {
   if (s.phase === 'await_input') return false; // needs a human choice
   if (s.phase === 'ai_ready') {
     const f = s.current;
+    // Scripted opener (ENG-9, T3.6): consume one queued verse per AI turn.
+    // A trailing '*' on an id means REPEAT that verse whenever it is legal
+    // (the enemy doctrine — Bram's "Brace and outlast", §9.1) until T5.7
+    // replaces this hook with the full scripting engine. A queued id that is
+    // not currently legal is dropped and the scorer takes over —
+    // deterministic either way, and the script can never make the AI cast an
+    // illegal verse (the §10.9 bans hold under scripting).
+    if (Array.isArray(f.sheet.script) && f.sheet.script.length) {
+      const queued = f.sheet.script[0];
+      const repeat = queued.endsWith('*');
+      const id = repeat ? queued.slice(0, -1) : queued;
+      const legalPick = legalVerses(session, f).find((v) => v.id === id);
+      if (legalPick) {
+        if (!repeat) f.sheet.script.shift();
+        submitChoice(session, id);
+        return true;
+      }
+      if (!repeat) f.sheet.script.shift();
+    }
     const pick = chooseVerse(f, f.opponent, s, session.m, session.tuning, (actor) => poolForAI(session, actor));
     if (pick.tieBreak) {
       session.logLine('info', f.side, `${f.sheet.name} hesitates between equals — the Measure picks ${pick.verse.name}.`);

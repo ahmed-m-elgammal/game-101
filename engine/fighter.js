@@ -167,6 +167,10 @@ function buildSheet(build, tuning) {
     items: build.items || [],
     isEnemy: !!build.isEnemy,
     rite: build.rite || null,
+    // T3.6 scripted opener (minimal engine hook, ENG-9; the full doctrine
+    // scripting is T5.4/T5.7 and supersedes this): a deterministic queue of
+    // verse ids the AI casts before falling back to the scorer. Enemies only.
+    script: Array.isArray(build.script) ? build.script.map(String) : null,
     alloc: { creation: { ...build.creation }, levelUps: { ...build.levelUps }, total: alloc.total },
   };
 }

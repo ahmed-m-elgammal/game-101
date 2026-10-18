@@ -1,6 +1,8 @@
 # dependencies / build
 node_modules/
 dist/
+site/
+public-game/
 coverage/
 
 # env / secrets — tokens NEVER live in this repo

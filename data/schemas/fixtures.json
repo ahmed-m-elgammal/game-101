@@ -62,6 +62,21 @@
       { "tally": "devotion", "reward": { "item": "grave_shovel_of_bram" } }
     ]
   },
+  "scene": {
+    "id": "ch1_open", "chapter": "ch1",
+    "heading": "Chapter 1 — The Candle Crypt",
+    "plate": "assets/img/act1-plate.webp",
+    "duelId": "tutorial_bram",
+    "prose": [
+      { "text": "You wake on a stone shelf with a candle in your hand that will not go out and no memory of your own name." },
+      { "speaker": "Maren", "text": "Vigil. That is a job, not a name. It will do for now." }
+    ],
+    "choices": [
+      { "id": "ch1_mace", "label": "Take the Pallbearer's Mace.", "tally": "ruthless", "gift": "Pallbearer's Mace — +30% damage against targets under 35% HP. (§8.1)" },
+      { "id": "ch1_shroud", "label": "Take the Sexton's Shroud.", "tally": "mercy", "gift": "Sexton's Shroud — +2 GRD, start each fight with 10 Ward. (§8.1)" },
+      { "id": "ch1_hymn", "label": "Burn the hymn-book and learn the verses yourself.", "tally": "devotion", "gift": "Grave-Shovel of Bram — +2 GRD, start each fight with Brace. (§8.1)" }
+    ]
+  },
   "objective": {
     "id": "tally_ch1", "chapter": 1,
     "text": "End the sexton's digging without your candle's mercy.",

@@ -1,0 +1,421 @@
+/*
+ * base.css — T3.1 component primitives ([GDD] §11.5) + screen layout (§14)
+ * + the duel-screen mobile layout (T3.8, §14 Mobile paragraph).
+ *
+ * Rules carried here:
+ *  - the only animated element in combat is the Wax Meter (§10.6) — the HP
+ *    bar drains over 220ms on ATTACK damage, but never on DoT ticks (§10.6/
+ *    §11.5: DoT updates are instant so the player can count them);
+ *  - disabled verse buttons are 38% opacity, not grey (cost/CD stay readable);
+ *  - the only saturated colours are the status colours (§11.3);
+ *  - numbers are always mono (tabular), body never below 16px for prose.
+ */
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background-color: var(--soot);
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: var(--t-body-size);
+  line-height: var(--t-body-line);
+  min-height: 100vh;
+  /* Ash-parchment ground at 6% (§11.2/§14). The real tile (T8.9) swaps in
+     through --texture-url; this grain stands in until then. */
+  background-image:
+    repeating-linear-gradient(115deg, rgba(230, 222, 208, 0.014) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(24deg, rgba(230, 222, 208, 0.02) 0 1px, transparent 1px 7px),
+    var(--texture-url);
+  background-repeat: repeat;
+}
+
+.num, .mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-num-size);
+  line-height: var(--t-num-line);
+  font-variant-numeric: tabular-nums;
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; }
+
+.small-caps { font-variant: small-caps; letter-spacing: 0.08em; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--soot-3);
+  border: 1px solid rgba(157, 148, 138, 0.4);
+  cursor: pointer;
+}
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--tallow);
+  outline-offset: 2px;
+}
+
+a { color: var(--tallow); }
+
+/* -- Screens ------------------------------------------------------------ */
+.screen { max-width: 1060px; margin: 0 auto; padding: 16px; }
+
+.wordmark {
+  font-family: var(--font-wordmark);
+  font-size: var(--t-display-size);
+  line-height: var(--t-display-line);
+  color: var(--tallow);
+  letter-spacing: 0.02em;
+}
+
+/* -- Fighter panel (§11.5) ---------------------------------------------- */
+.panel {
+  background: var(--soot-2);
+  border: 1px solid rgba(157, 148, 138, 0.25);
+  padding: 12px;
+}
+.panel--raised { background: var(--soot-3); }
+
+.fighter-name {
+  font-family: var(--font-display);
+  font-size: var(--t-title-size);
+  line-height: var(--t-title-line);
+  font-variant: small-caps;
+}
+.fighter-sub { color: var(--bone-dim); font-size: var(--t-small-size); line-height: var(--t-small-line); }
+
+/* HP bar: 4px, tallow fill, soot-3 track, 1px bone-dim border at 20%. */
+.hpbar {
+  height: var(--hp-height);
+  background: var(--soot-3);
+  border: 1px solid rgba(157, 148, 138, 0.2);
+  position: relative;
+  margin: 6px 0;
+}
+.hpbar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  background: var(--tallow);
+  transition: width var(--hp-drain) linear;
+}
+/* DoT ticks update instantly — the player counts them (§10.6, §11.5). */
+.hpbar-fill--instant { transition: none; }
+.hp-num { font-family: var(--font-mono); font-size: var(--t-num-size); font-variant-numeric: tabular-nums; }
+
+/* Resolve pips: 10 discrete, 6px, 1px gap. Full / partial (40% fill at 40%
+   opacity per spec) / empty (1px outline). */
+.pips { display: flex; gap: var(--pip-gap); align-items: center; margin: 4px 0; }
+.pip {
+  width: var(--pip-size);
+  height: var(--pip-size);
+  border: 1px solid var(--bone-dim);
+  background: transparent;
+  position: relative;
+}
+.pip--full { background: var(--tallow); border-color: var(--tallow); }
+.pip--partial { background: transparent; border-color: var(--tallow); opacity: 0.4; }
+.pip--partial::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 40%;
+  background: var(--tallow);
+}
+
+/* Status chips: 20px tall, 1px border in the status colour at 50%, 8% fill,
+   mono number on the right, glyph at 14px. */
+.chips { display: flex; flex-wrap: wrap; gap: 4px; min-height: 20px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--chip-height);
+  padding: 0 6px;
+  font-size: var(--t-micro-size);
+  line-height: var(--t-micro-line);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid;
+}
+.chip svg { width: 12px; height: 12px; flex: none; }
+.chip--hush { color: var(--soot-3); }
+.chip--hush .chip-glyph { color: inherit; }
+
+/* -- Wax Meter (§11.5, §10.6) -------------------------------------------
+   3px × 160px, wax-gold fill, hairline at 100%, faint glow at the extremes.
+   The ONLY animated element in combat. */
+.waxbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wax {
+  width: var(--wax-width);
+  height: var(--wax-height);
+  background: var(--soot-3);
+  position: relative;
+  border: 1px solid rgba(157, 148, 138, 0.2);
+}
+.wax-fill {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  background: var(--wax-gold);
+  transition: width 120ms linear;
+}
+.wax-hairline {
+  position: absolute;
+  top: -3px; bottom: -3px;
+  left: 50%;
+  width: 1px;
+  background: var(--bone-dim);
+}
+.wax--hot .wax-fill { box-shadow: 0 0 6px 1px rgba(246, 227, 187, 0.75); }
+.wax--cold .wax-fill { box-shadow: 0 0 6px 1px rgba(93, 128, 113, 0.55); }
+.wax-num { font-family: var(--font-mono); font-size: var(--t-num-size); font-variant-numeric: tabular-nums; }
+
+/* -- Verse buttons (§11.5) -----------------------------------------------
+   Cinzel label, mono cost badge top-right, cooldown sweep overlay, 12px
+   status preview row. Disabled = 38% opacity, not grey. */
+.verse-tray { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
+.verse-btn {
+  position: relative;
+  min-height: var(--touch-min);
+  padding: 8px 10px 6px;
+  text-align: left;
+  overflow: hidden;
+  background: var(--soot-2);
+  border: 1px solid rgba(157, 148, 138, 0.35);
+}
+.verse-btn[disabled] {
+  opacity: var(--btn-disabled-opacity);
+  cursor: default;
+}
+.verse-btn .v-name {
+  font-family: var(--font-display);
+  font-size: var(--t-sub-size);
+  line-height: var(--t-sub-line);
+  color: var(--tallow-glow);
+}
+.verse-btn .v-cost {
+  position: absolute;
+  top: 4px; right: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro-size);
+  color: var(--bone-dim);
+  border: 1px solid rgba(157, 148, 138, 0.4);
+  padding: 0 4px;
+}
+.verse-btn .v-cd {
+  position: absolute;
+  top: 4px; right: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro-size);
+  color: var(--tallow);
+}
+.verse-btn .v-preview {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--bone-dim);
+}
+.verse-btn .v-line {
+  font-size: var(--t-micro-size);
+  line-height: var(--t-micro-line);
+  color: var(--bone-dim);
+  margin-top: 2px;
+}
+.verse-btn .v-sweep {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 11, 10, 0.55);
+  transform-origin: left center;
+  pointer-events: none;
+}
+.verse-btn--strike { grid-column: 1 / -1; }
+
+/* -- Log gutter (§11.5) ---------------------------------------------------
+   [round n] verb + target + amount with a 1px left border in the damage
+   type's colour. Prose entries are italic and borderless. */
+.log {
+  height: 260px;
+  overflow-y: auto;
+  border: 1px solid rgba(157, 148, 138, 0.25);
+  background: var(--soot-2);
+  padding: 8px 10px;
+  font-size: var(--t-small-size);
+  line-height: var(--t-small-line);
+}
+.log-entry { border-left: 1px solid transparent; padding: 1px 0 1px 8px; margin: 2px 0; }
+.log-entry .log-r { color: var(--bone-dim); font-family: var(--font-mono); font-size: var(--t-micro-size); margin-right: 6px; }
+.log-entry .log-text { font-family: var(--font-mono); font-size: 13px; line-height: 17px; }
+.log-entry--damage-steel   { border-left-color: var(--bone-dim); }
+.log-entry--damage-crimson { border-left-color: var(--crimson); }
+.log-entry--damage-ember   { border-left-color: var(--ember); }
+.log-entry--damage-violet  { border-left-color: var(--violet); }
+.log-entry--damage-true    { border-left-color: var(--tallow); }
+.log-entry--heal    { border-left-color: var(--verdigris); }
+.log-entry--status  { border-left-color: var(--rust); }
+.log-entry--resolve { border-left-color: var(--tallow); }
+.log-entry--info    { border-left-color: rgba(157, 148, 138, 0.4); }
+.log-entry--dot     { border-left-color: var(--ember); }
+.log-entry--prose {
+  border-left-color: transparent;
+  font-style: italic;
+  color: var(--bone-dim);
+}
+.log-entry--prose .log-text { font-family: var(--font-body); font-size: var(--t-small-size); }
+
+/* -- Reading panel (§11.5, §10.8) ----------------------------------------
+   Bordered card above the fight. Always present, never collapsed (desktop).
+   The counter line is --tallow. */
+.reading {
+  border: 1px solid rgba(232, 200, 138, 0.45);
+  background: var(--soot-2);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.reading .r-head {
+  font-family: var(--font-display);
+  font-size: var(--t-title-size);
+  line-height: var(--t-title-line);
+  font-variant: small-caps;
+}
+.reading .r-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro-size);
+  letter-spacing: 0.14em;
+  color: var(--bone-dim);
+}
+.reading .r-threat { font-style: italic; color: var(--bone); }
+.reading .r-expect { font-family: var(--font-mono); font-size: var(--t-num-size); font-variant-numeric: tabular-nums; }
+.reading .r-counter { color: var(--tallow); }
+.reading .r-seed { color: var(--bone-dim); font-family: var(--font-mono); font-size: var(--t-micro-size); letter-spacing: 0.12em; }
+.reading .r-sync { color: var(--verdigris); font-size: var(--t-small-size); line-height: var(--t-small-line); font-style: italic; }
+.reading-toggle { display: none; }
+
+/* -- Round counter + wax strip ------------------------------------------ */
+.roundbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+.round-counter { font-family: var(--font-mono); font-size: var(--t-num-size); letter-spacing: 0.1em; color: var(--bone-dim); }
+
+/* -- Hints (T3.6) -------------------------------------------------------- */
+.hint {
+  border: 1px solid rgba(232, 200, 138, 0.5);
+  background: var(--soot-3);
+  color: var(--bone);
+  padding: 8px 10px;
+  margin: 8px 0;
+  font-size: var(--t-small-size);
+  line-height: var(--t-small-line);
+}
+.hint .hint-x {
+  float: right;
+  background: transparent;
+  border: none;
+  color: var(--bone-dim);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  margin: -12px -12px 0 0;
+  font-size: var(--t-sub-size);
+}
+.hint .hint-label { color: var(--tallow); font-family: var(--font-display); font-variant: small-caps; margin-right: 6px; }
+
+/* -- Post-fight report (§10.7, §14.7) ------------------------------------ */
+.report { border: 1px solid rgba(232, 200, 138, 0.45); background: var(--soot-2); padding: 14px; margin-top: 10px; }
+.report .verdict {
+  font-family: var(--font-display);
+  font-size: var(--t-sub-size);
+  line-height: var(--t-sub-line);
+  color: var(--tallow-glow);
+}
+.report .verdict a, .report .verdict .link { color: var(--tallow); text-decoration: underline; cursor: pointer; }
+.report .last-bell { color: var(--tallow); font-family: var(--font-mono); letter-spacing: 0.18em; font-size: var(--t-micro-size); }
+.report .calibration { font-style: italic; color: var(--bone-dim); margin-top: 6px; }
+.report .report-totals { font-family: var(--font-mono); font-size: var(--t-num-size); color: var(--bone-dim); margin-top: 8px; }
+
+/* -- Scene renderer (T3.9, §14.2 seed) ----------------------------------- */
+.scene { max-width: 760px; margin: 0 auto; }
+.scene-plate {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 1;
+  display: block;
+  background: linear-gradient(180deg, var(--soot-3), var(--soot-2));
+  border: 1px solid rgba(157, 148, 138, 0.25);
+  object-fit: cover;
+}
+.scene-heading { margin: 14px 0 6px; }
+.scene-prose { margin: 10px 0; }
+.scene-prose--spoken { font-style: italic; }
+.scene-prose .speaker { font-family: var(--font-display); font-variant: small-caps; color: var(--tallow); font-style: normal; margin-right: 6px; }
+.scene-gift { color: var(--verdigris); font-size: var(--t-small-size); line-height: var(--t-small-line); font-family: var(--font-mono); }
+.choice-tray { display: grid; gap: 8px; margin: 14px 0; }
+.choice-btn {
+  min-height: var(--touch-min);
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--soot-2);
+  border: 1px solid rgba(157, 148, 138, 0.35);
+}
+.choice-btn .c-tally { color: var(--bone-dim); font-family: var(--font-mono); font-size: var(--t-micro-size); margin-left: 8px; }
+
+/* -- Duel layout (desktop): panels flank the log, buttons beneath -------- */
+.duel-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr minmax(220px, 300px);
+  gap: 12px;
+  align-items: start;
+}
+.duel-center { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+/* -- Mobile (§14 Mobile paragraph, T3.8) ----------------------------------
+   Single column. Fighter panels stack above the log; verse buttons 2×2 with
+   Strike full-width beneath; Reading collapses to one tap-line; the Wax
+   Meter stays visible at all times (pinned — never scrolled away). */
+@media (max-width: 720px) {
+  .screen { padding: 8px; }
+  .duel-grid { grid-template-columns: 1fr; }
+  .duel-grid .panel--enemy { order: 1; }
+  .duel-grid .panel--player { order: 2; }
+  .duel-grid .duel-center { order: 3; }
+  .verse-tray { grid-template-columns: repeat(2, 1fr); }
+  .verse-btn--strike { grid-column: 1 / -1; }
+  .wax-strip {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--soot);
+    border-bottom: 1px solid rgba(157, 148, 138, 0.25);
+    padding: 6px 0;
+  }
+  /* Reading collapses to one line, tap to expand. */
+  .reading { padding: 6px 10px; }
+  .reading .reading-toggle {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-variant: small-caps;
+    min-height: var(--touch-min);
+  }
+  .reading .reading-body { display: none; }
+  .reading.reading--open .reading-body { display: block; }
+  .log { height: 200px; }
+}
+
+/* -- Sample page (T3.1 acceptance: every §11.5 component on one page) ---- */
+.samples { display: grid; gap: 18px; }
+.samples .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.swatch { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: var(--t-micro-size); color: var(--bone-dim); }
+.swatch i { width: 18px; height: 18px; border: 1px solid rgba(157, 148, 138, 0.4); display: inline-block; }

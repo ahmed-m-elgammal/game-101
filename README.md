@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| **Status** | **Phase 0 complete** — decision gates closed, design baseline frozen, repo scaffolded. No game code yet: implementation starts at Phase 1 (`TASKS.md`). |
+| **Status** | **Phases 0–3 complete** — decision baseline, engine core, balance harness, and the Combat UI & First Playable Slice (`ui/` + `tools/build-site.js`): the Ashblade-vs-Bram tutorial is playable, offline, in a browser. Next: Phase 4 content data layer. |
 | **Design doc (canon)** | [`THE-ASHEN-CHOIR-v1.0.1.md`](THE-ASHEN-CHOIR-v1.0.1.md) — v1.0 with every approved decision applied and tagged. The untouched v1.0 is kept alongside for diffing. |
 | **Decision record** | [`docs/DECISIONS.md`](docs/DECISIONS.md) — verdicts on D1–D32, N1–N4, micro-gates, assumption register, reconciliations (24 vows / 40 items / 10 shrines). |
 | **Roadmap** | [`TASKS.md`](TASKS.md) — 12 phases, 110 tasks, dependency-aware, written so each task can be implemented without guessing. |

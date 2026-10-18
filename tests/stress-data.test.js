@@ -299,13 +299,16 @@ test('rites registry: stat mult values are sane multipliers (0.1–3)', () => {
 });
 
 // ------------------------------------------------------------- validators
-test('validators: the frozen schema catalogue (T0.3 — 14 kinds)', () => {
+test('validators: the frozen schema catalogue (T0.3 — 14 kinds; +scene per T3.9, 2026-10-18)', () => {
+  // Phase 3 added exactly one kind (`scene`, the T3.9 Chronicle seed) to the
+  // frozen T0.3 catalogue — additive, no existing shape touched. This pin
+  // still fails on any removal/rename of a frozen kind.
   assert.deepEqual(Object.keys(SCHEMAS).sort(), [
     'chapter', 'choice', 'class', 'deed', 'echoCode', 'enemy', 'item',
-    'namedEcho', 'objective', 'rite', 'saveState', 'vendorEntry', 'verse',
-    'vow',
+    'namedEcho', 'objective', 'rite', 'saveState', 'scene', 'vendorEntry',
+    'verse', 'vow',
   ]);
-  assert.strictEqual(Object.keys(SCHEMAS).length, 14);
+  assert.strictEqual(Object.keys(SCHEMAS).length, 15);
 });
 test('validators: unknown kind is rejected with a named error', () => {
   const r = validate('nope', {});
