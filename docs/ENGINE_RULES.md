@@ -17,6 +17,14 @@ The product promise is that the same seed + the same builds produce byte-identic
 8. **No `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, or http(s) module imports anywhere** in the shipped game. All assets are self-hosted; total weight ≈ 1.9 MB. The single allowlist is this tool's own source, which necessarily contains the ban patterns.
 9. **Provisional constants live in one place**: any `PROVISIONAL:D#` number (see DECISIONS.md) gets a single source (Phase 1 will add `data/config.js`); it is never spread through the codebase.
 
+## The honesty firewall (T5.6, [GDD] §12.3 rules 4–5)
+
+The Echo AI reads the opponent **only through `visibleOf()`** (`engine/ai.js`) — the frozen projection of what the fighter panel shows: HP, Resolve, status chips with values, the D10 temperature bar when one is exposed, and the defender's mitigation **constants** (public math; never the vow/gear identities that produce them). Rules, enforced by `tests/phase5-honesty.test.js`:
+
+10. **The projection is the only target view.** The decision layer (`chooseVerse`, every doctrine in `engine/doctrines.js`, the T5.7 scripts) receives the raw actor (an AI may know its own build) but the opponent only as the frozen projection. `Object.isFrozen` is deep — the view cannot be mutated or grafted open.
+11. **No hidden reads, by architecture.** The AI layer imports no vow/gear accessors (`data/vows.js`, `data/items.js`) and contains no raw `opponent.sheet` / `target.sheet` reads. Both are source-scanned in CI alongside the purity bans.
+12. **Poison-equality is the proof.** Two boards identical in every visible field but structurally different underneath (different hand, vow, gear, cooldowns, flags) must produce byte-identical score tables and the same pick — through the default scorer and all four doctrines. Any hidden read would leak into the numbers and fail the pin.
+
 ## CI gate order
 
 `tools/check-bans.js` (purity + network) → `node --test tests/` → schema validation (T0.3) → `tools/audit-amendment.js` (spec hygiene) → `tools/check-inventory.js` (advisory until Phase 6, `--strict` blocks at Phase 10).

@@ -1,7 +1,7 @@
 # TASKS.md — The Ashen Choir: Development Roadmap
 
 **Project:** The Ashen Choir — a build-driven, text-carried duel RPG with a deterministic async PvP ladder (the Choir Floor).
-**Document status:** v1.0 roadmap · generated 2026-10-18 from the design corpus below · **Phase 0 EXECUTED 2026-10-18** (T0.1–T0.5 done; decisions recorded in `docs/DECISIONS.md`; baseline spec `THE-ASHEN-CHOIR-v1.0.1.md`; schemas, scaffold + CI live) · **Phases 0–2 RE-TESTED 2026-10-18** (N8 in DECISIONS.md: 1,078 new adversarial tests across 7 suites, 9 confirmed bugs found and fixed — vow source-routing, crit-threshold float inflation, Ilvane learn legality/tie-break, preset unlock legality, validator/Reading crash hardening; full suite 1,145/1,145) · **Phase 5a EXECUTED 2026-10-18** (T5.1–T5.4 done: build assembly/validation + canonical serialization, the Hymnal's loadout logic + Reshape Ledger, the Twin Ledger (D3), the Echo-AI shared rules with the honest visible-state boundary and the shared expected-damage estimator; 1,373/1,373) · remaining tasks unchecked (`- [ ]`) · nothing here changes canon — it sequences it.
+**Document status:** v1.0 roadmap · generated 2026-10-18 from the design corpus below · **Phase 0 EXECUTED 2026-10-18** (T0.1–T0.5 done; decisions recorded in `docs/DECISIONS.md`; baseline spec `THE-ASHEN-CHOIR-v1.0.1.md`; schemas, scaffold + CI live) · **Phases 0–2 RE-TESTED 2026-10-18** (N8 in DECISIONS.md: 1,078 new adversarial tests across 7 suites, 9 confirmed bugs found and fixed — vow source-routing, crit-threshold float inflation, Ilvane learn legality/tie-break, preset unlock legality, validator/Reading crash hardening; full suite 1,145/1,145) · **Phase 5a EXECUTED 2026-10-18** (T5.1–T5.4 done: build assembly/validation + canonical serialization, the Hymnal's loadout logic + Reshape Ledger, the Twin Ledger (D3), the Echo-AI shared rules with the honest visible-state boundary and the shared expected-damage estimator; 1,373/1,373) · **Phase 5b EXECUTED 2026-10-18** (T5.5–T5.8 done: the four §12.2 doctrines layered over the shared rules with the honesty firewall, the T5.7 scripting engine with the 21 golden scenarios, the D11 Corvane run-lock; 1,438/1,438) · remaining tasks unchecked (`- [ ]`) · nothing here changes canon — it sequences it.
 **Implementer model:** every task is written to be handed to Codex (or any engineer) individually, without guessing. Where a task touches an unresolved design decision, the task says so, names the decision ID, and states the recommended default. **Do not implement the decided portion of a blocked task until the decision is recorded as approved** in `docs/DECISIONS.md` (created by T0.1).
 
 ---
@@ -986,6 +986,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 # Phase 5 — Loadout, Reshaping & Echo AI
 
+> **Progress (2026-10-18, second pass):** T5.5–T5.8 COMPLETE — `engine/doctrines.js` (the four §12.2 profiles over the shared rules; no-doctrine sheets play the default scorer unchanged), the frozen visibleOf firewall (T5.6, ENGINE_RULES 10–12), `engine/ai-scripts.js` (structured triggers + the byte-identical ENG-9 queue + the Phase-III Baton priority), `store/counterbuild.js` (the D11 lock/reveal integration). Full suite 1,438/1,438; CI exit 0.
 > **Progress (2026-10-18, first pass):** T5.1–T5.4 COMPLETE — `engine/build.js` (the one validator + canonical serialization), `store/loadout.js` (the Hymnal's logic layer + the append-only Reshape Ledger), `store/twin-ledger.js` (D3's second slot), and the rewritten `engine/ai.js` (the §12.3 shared rules behind the unchanged Phase-1 interface, with the honest `visibleOf()` boundary and the shared `expectedDirectDamage` estimator; the T4.5 Rites-of-Passage activation trigger wired). T5.5–T5.8 remain (doctrines, honesty suite hardening, enemy scripting, Corvane integration). Full suite 1,373/1,373; all CI gates green.
 
 **Purpose:** `[GDD] §15.4` Phase 3's systems half — "any build can be assembled and sent to fight." Build assembly + the Hymnal's logic layer, the Twin Ledger, the Echo AI with its honesty rules, the four doctrines, and enemy AI scripting.
@@ -1062,32 +1063,32 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T5.5 — Doctrines: Hymnal, Predator, Bulwark, Cantor's Hand
-- [ ] T5.5 done
+- [x] T5.5 done (2026-10-18 — `engine/doctrines.js`; 24 tests in `tests/phase5-doctrines.test.js` + the harness comparison)
 
 **Goal:** the four behavior profiles of `[GDD] §12.2`, layered over T5.4's shared rules.
 **Implementation:**
-- [ ] Hymnal: strict slot-order playback
-- [ ] Predator: highest-damage affordable verse; defends only below 30% HP
-- [ ] Bulwark: defensive verses first when <70% HP or no Ward/Brace active; else Hymnal
-- [ ] Cantor's Hand: blends Hymnal with the verse most likely punished by the opponent's active statuses (reserved for Rite-users + one named Echo per §12.2)
-- [ ] Doctrine selection stored on the Echo; used identically by campaign enemies (via T5.7) and Floor Echoes
+- [x] Hymnal: strict slot-order playback (2026-10-18 — the first usable non-Strike slot in priority order; lethal outranks the order)
+- [x] Predator: highest-damage affordable verse; defends only below 30% HP (2026-10-18 — picks by the shared estimator's expectation, not the score; above the line damage-only, Strike labeled fallback; below it the shared scoring defends)
+- [x] Bulwark: defensive verses first when <70% HP or no Ward/Brace active; else Hymnal (2026-10-18 — defensive = brace/ward/thorns/heal/cleanse ONLY: burn amps and control are not defense — the harness comparison caught the dead-Stoke pathology)
+- [x] Cantor's Hand: blends Hymnal with the verse most likely punished by the opponent's active statuses (reserved for Rite-users + one named Echo per §12.2) (2026-10-18 — "punished" = the status-scaling delta, computed by difference between two estimator passes over ONE frozen projection; plus the Cleanse that answers applied debuffs; no component → Hymnal order)
+- [x] Doctrine selection stored on the Echo; used identically by campaign enemies (via T5.7) and Floor Echoes (2026-10-18 — the sheet's doctrine field drives the layer; no-doctrine sheets = the default scorer so every pinned fight holds; Floor rows hand the doctrine to the build via `buildOf(echo)`)
 **References:** `[GDD] §12.2`, `§12.3`.
 **Dependencies:** ← T5.4.
 **Acceptance criteria:** doctrine behavior differences measurable in harness (win-rate deltas by matchup); each doctrine's stated rule verified by scripted scenarios.
-**Tests & validation:** per-doctrine scenario tests; harness doctrine-comparison report.
+**Tests & validation:** per-doctrine scenario tests; harness doctrine-comparison report. (2026-10-18: `harness/doctrines.js` compareDoctrines — behavioral golden pinned on witch-vs-cantor L3: hymnal 22 / predator 22 / bulwark 12 / cantors_hand 24 of 24 seeds.)
 **Deliverables:** `engine/doctrines.js`.
 **Priority:** Critical.
 
 ---
 
 ### T5.6 — AI honesty enforcement (no hidden information)
-- [ ] T5.6 done
+- [x] T5.6 done (2026-10-18 — the frozen projection + 6 tests in `tests/phase5-honesty.test.js`; ENGINE_RULES.md rules 10–12)
 
 **Goal:** enforce `[GDD] §12.3` rules 4–5 by construction and by test: the AI may read only visible statuses/HP/Resolve — never slotted verses, vow, gear, or future casts. This is what keeps the ladder honest.
 **Implementation:**
-- [ ] Information firewall: AI scoring receives a redacted state view (type-level enforcement where possible)
-- [ ] Unit test: hidden-info presence must not change AI decisions (same visible state, different hidden hands → identical choices)
-- [ ] Lint/architecture test: `engine/ai.js` imports no gear/vow-pool accessors
+- [x] Information firewall: AI scoring receives a redacted state view (type-level enforcement where possible) (2026-10-18 — visibleOf is the ONLY target view, deep-frozen, shape-pinned (exact key set); JSDoc typedef VisibleState)
+- [x] Unit test: hidden-info presence must not change AI decisions (same visible state, different hidden hands → identical choices) (2026-10-18 — poison-equality through the default scorer AND all four doctrines)
+- [x] Lint/architecture test: `engine/ai.js` imports no gear/vow-pool accessors (2026-10-18 — plus doctrines.js/ai-scripts.js; and no raw `opponent.sheet`/`target.sheet` reads in the decision layer)
 **References:** `[GDD] §12.3` rules 4–5, `§17` risk table.
 **Dependencies:** ← T5.4, T5.5.
 **Acceptance criteria:** firewall test green; architecture test green; documented in ENGINE_RULES.md.
@@ -1098,14 +1099,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T5.7 — Enemy AI scripting: signature verbs, openers, mimics
-- [ ] T5.7 done
+- [x] T5.7 done (2026-10-18 — `engine/ai-scripts.js`; 27 tests in `tests/phase5-scripts.test.js` — 21 golden scenarios + 6 DSL rows)
 
 **Goal:** enemies are "full builds, not stat blobs" — each one's signature verb and scripted opener implemented as data the doctrine layer executes (Bram t1 Spikes; Brack t1 Hush; Pell Ledger's Ward at 50% per N4; Yune's mimic at 80%; First Movement's fixed learnable opening; Ysolde's UNSANCTIONED burn; Oren's regen+Stun; Ilvane's three phases incl. Phase III copy rules).
 **Implementation:**
-- [ ] Scripted-opener DSL: turn-keyed actions before doctrine takes over
-- [ ] Conditional scripts: HP-threshold triggers (Pell 50%, First Vespers 50%), turn-count triggers (First Movement turns 1–3), counter-verse triggers (Yune: copy last player-cast verse at 80% — define "last cast" incl. Strike handling per F21 spirit; N4 provisional for Pell's theft)
-- [ ] Ilvane Phase II summon points (50%/25%) + heal 20% (A4); Phase III via T1.8
-- [ ] Ally-side support: Turned Pour bell as an allied fighter entity (T6.4 consumes)
+- [x] Scripted-opener DSL: turn-keyed actions before doctrine takes over (2026-10-18 — `aiScript` rows {when: atTurn/hpBelowPct/targetHpBelowPct/roundAtLeast, verse, once, why}; the ENG-9 queue semantics migrated byte-identically (1,373 pinned fights green through the refactor); posture-gated turns count for neither layer)
+- [x] Conditional scripts: HP-threshold triggers (Pell 50%, First Vespers 50%), turn-count triggers (First Movement turns 1–3), counter-verse triggers (Yune: copy last player-cast verse at 80% — define "last cast" incl. Strike handling per F21 spirit; N4 provisional for Pell's theft) (2026-10-18 — the roster's conditionals live as rites/specials data (T4.6), observed in the golden scenarios; the DSL covers authoring new ones; Yune's mimic = lastSlottedCastId incl. Strike, 0.8 power pinned)
+- [x] Ilvane Phase II summon points (50%/25%) + heal 20% (A4); Phase III via T1.8 (2026-10-18 — the golden scenario walks every threshold; T5.7 closed the Phase-III gap: the learned verse now casts EVERY time it is off cooldown (the Baton outranks his own script tail), Strike never copied)
+- [x] Ally-side support: Turned Pour bell as an allied fighter entity (T6.4 consumes) (2026-10-18 — the R7d chassis builds via the declared budgetOverride path; startThorns 6 / once-per-round / curseImmune pinned as data)
 **References:** `[GDD] §9.1–9.3` (all signature verbs), `[00] F20/F21/F34`, N4, A4.
 **Dependencies:** ← T5.4, T5.5, T4.6, T1.8.
 **Acceptance criteria:** every one of the 21 signature verbs observable in a scripted fight; openers fire exactly on script; mimic power = 80% verified; UNSANCTIONED Resolve-drain verified.
@@ -1116,13 +1117,13 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T5.8 — Corvane selection integration *(with T4.9, D11)*
-- [ ] T5.8 done
+- [x] T5.8 done (2026-10-18 — `store/counterbuild.js`; 8 tests in `tests/phase5-corvane.test.js`)
 
 **Goal:** execute the counterbuild selection at fight start — tag detection over the player's build, seeded pick, run-lock, reveal-on-loss — end to end in the Ch5 flow.
 **Implementation:**
-- [ ] Fight-start hook: read tags → pick row (weighted; unrecognized → neutral pool) → generate Corvane's sheet at L7 from the class template
-- [ ] Lock storage in run state (chapter-start seed); Re-bell preserves
-- [ ] Loss hook: first loss → Reading gains the axis line + fired row
+- [x] Fight-start hook: read tags → pick row (weighted; unrecognized → neutral pool) → generate Corvane's sheet at L7 from the class template (2026-10-18 — `lockCounterbuild` freezes the T4.9 pick into the run state at chapter start; the L7 budget-45 sheet resolves from the lock, never re-derived)
+- [x] Lock storage in run state (chapter-start seed); Re-bell preserves (2026-10-18 — the lock is THE PICK: 20 loss+re-bell loops across changed build strings never move it; plain-JSON save/load round-trip pinned)
+- [x] Loss hook: first loss → Reading gains the axis line + fired row (2026-10-18 — `recordCorvaneLoss` reveals exactly once; from the second loss it returns null so the standard Maren's Whisper applies)
 **References:** `[GDD] §9.2`, `[02] R6`, D11.
 **Dependencies:** ← T4.9, T5.7; D11.
 **Acceptance criteria:** end-to-end Ch5 integration test: same run → same counter across retries + sessions; neutral-pool fallback works; reveal fires once.

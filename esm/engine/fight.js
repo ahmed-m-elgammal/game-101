@@ -24,6 +24,8 @@ import { getVerse, STRIKE, VERSE_BY_ID } from '../data/verses.js';
 import { RITES } from '../data/rites.js';
 import { SUMMON_BODIES } from '../data/enemies.js';
 import { chooseVerse, maybeActivateOncePerFight } from './ai.js';
+import { chooseVerseByDoctrine } from './doctrines.js'; // T5.5 — wraps chooseVerse
+import { scriptedPick } from './ai-scripts.js'; // T5.7 — the scripting layer
 import { markMods, mergeMods, statusBlocked, applyFightStartMarks, turnStartMarks, effectiveCost, applierCurseMult } from './marks.js';
 
 const DEBUFF_KEYS = ['bleed', 'burn', 'curse', 'fray', 'hush', 'stun'];
@@ -1012,25 +1014,20 @@ export function step(session) {
         session.logLine('info', f.side, `${f.sheet.name} raises the blade. The crit is coming.`);
       }
     }
-    // Scripted opener (ENG-9, T3.6): consume one queued verse per AI turn.
-    // A trailing '*' on an id means REPEAT that verse whenever it is legal
-    // (the enemy doctrine — Bram's "Brace and outlast", §9.1) until T5.7
-    // replaces this hook with the full scripting engine. A queued id that is
-    // not currently legal is dropped and the scorer takes over —
-    // deterministic either way, and the script can never make the AI cast an
-    // illegal verse (the §10.9 bans hold under scripting).
-    if (Array.isArray(f.sheet.script) && f.sheet.script.length) {
-      const queued = f.sheet.script[0];
-      const repeat = queued.endsWith('*');
-      const id = repeat ? queued.slice(0, -1) : queued;
-      const legalPick = legalVerses(session, f).find((v) => v.id === id);
-      if (legalPick && !(restrictToSetup || folded)) {
-        if (!repeat) f.sheet.script.shift();
-        submitChoice(session, id);
-        if (f.sheet.special?.telegraphCrits) f.flags.critNext = false;
-        return true;
-      }
-      if (!repeat) f.sheet.script.shift();
+    // T5.7 — the scripting engine (engine/ai-scripts.js): structured
+    // trigger rows first, then the ENG-9 queue (byte-identical to the T3.6
+    // hook: shift per AI turn; illegal entries drop; repeat tails stick;
+    // the setup/fold postures gate the cast; a script can never cast an
+    // illegal verse). Null → the doctrine layer takes over.
+    const scripted = scriptedPick(session, f, s, {
+      restrictToSetup,
+      folded,
+      legal: legalVerses(session, f),
+    });
+    if (scripted) {
+      submitChoice(session, scripted.id);
+      if (f.sheet.special?.telegraphCrits) f.flags.critNext = false;
+      return true;
     }
     let pool = poolForAI(session, f);
     if (restrictToSetup || folded) {
@@ -1045,7 +1042,11 @@ export function step(session) {
     // honest (visible state only), at most once per fight. Manual sides
     // activate from the loadout UI (T8.x) — recorded in DECISIONS.md.
     maybeActivateOncePerFight(session, f, pool);
-    const pick = chooseVerse(f, f.opponent, s, session.m, session.tuning, () => pool);
+        // T5.5 — the doctrine layer: a sheet with a doctrine plays its §12.2
+    // profile over the shared rules; a sheet without one plays the T5.4
+    // default scorer unchanged (every campaign enemy row + all pinned
+    // fights — their canon behaviors are script/rite/special data).
+    const pick = chooseVerseByDoctrine(f, f.opponent, s, session.m, session.tuning, () => pool);
     if (pick.tieBreak) {
       session.logLine('info', f.side, `${f.sheet.name} hesitates between equals — the Measure picks ${pick.verse.name}.`);
     }

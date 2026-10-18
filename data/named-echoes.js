@@ -253,5 +253,16 @@ const FLOOR_POPULATION = [...NAMED_ECHOES, ...RITE_USERS];
 
 const ECHO_BY_ID = new Map(FLOOR_POPULATION.map((e) => [e.id, e]));
 
+/**
+ * T5.5 wiring: a Floor Echo fights under its row's doctrine — the doctrine
+ * rides the BUILD so buildSheet stamps it on the sheet and the engine's
+ * doctrine layer (engine/doctrines.js) plays the §12.2 profile. One
+ * conversion, everywhere (T7.x consumes this, never the raw row).
+ */
+function buildOf(echo) {
+  if (!echo) throw new Error('echo required');
+  return { ...structuredClone(echo.build), doctrine: echo.doctrine };
+}
 
-module.exports = { NAMED_ECHOES, RITE_USERS, FLOOR_POPULATION, ECHO_BY_ID };
+
+module.exports = { buildOf, NAMED_ECHOES, RITE_USERS, FLOOR_POPULATION, ECHO_BY_ID };

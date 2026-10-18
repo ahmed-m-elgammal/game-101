@@ -86,7 +86,18 @@ function visibleOf(f, tuning) {
     vis.defense[t] = defenseConstant(f, t, tuning);
   }
   vis.defenseMap = vis.defense;
-  return vis;
+  // T5.6 — the firewall freezes what it hands out (deep). In sloppy-mode
+  // callers a stray write silently no-ops; in strict callers it throws.
+  // Either way the projection the decision logic sees cannot drift.
+  return deepFreeze(vis);
+}
+
+function deepFreeze(o) {
+  if (o && typeof o === 'object') {
+    for (const k of Object.keys(o)) deepFreeze(o[k]);
+    Object.freeze(o);
+  }
+  return o;
 }
 
 /** The current mitigation constant of a fighter against one damage type. */
@@ -286,6 +297,25 @@ function scoreVerse(actor, vis, verse, tuning, fortune) {
 }
 
 /**
+ * Rule 1 — the lethal scan, shared by the default path and every doctrine
+ * (T5.5): any usable damaging verse EXPECTED to land ≥ the target's visible
+ * HP. Returns null when nothing is lethal, else { rows, top, tied } with
+ * rows sorted by land desc (id asc), tied = the exact equals at the top.
+ */
+function lethalOf(actor, vis, legal, tuning, fortune) {
+  const rows = [];
+  for (const v of legal) {
+    const { land } = expectedDamageOfVerseVis(actor, vis, v, tuning, { fortune });
+    if (land >= vis.hp) rows.push({ verse: v, land });
+  }
+  if (rows.length === 0) return null;
+  rows.sort((a, b) => b.land - a.land || a.verse.id.localeCompare(b.verse.id));
+  const top = rows[0].land;
+  const tied = rows.filter((r) => r.land === top);
+  return { rows, top, tied };
+}
+
+/**
  * The Echo AI's shared decision. Same interface the Phase-1 placeholder
  * held (T5.5's doctrines wrap, not replace, this):
  *   chooseVerse(actor, target, state, m, tuning, legalVersesOf)
@@ -304,15 +334,9 @@ function chooseVerse(actor, target, state, m, tuning, legalVersesOf) {
 
   // Rule 1 — the lethal check (before the filter: a killing blow is never
   // pointless). Highest expected damage first; exact ties → Band(k).
-  const lethalRows = [];
-  for (const v of legal) {
-    const { land } = expectedDamageOfVerseVis(actor, vis, v, tuning, { fortune });
-    if (land >= vis.hp) lethalRows.push({ verse: v, land });
-  }
-  if (lethalRows.length) {
-    lethalRows.sort((a, b) => b.land - a.land || a.verse.id.localeCompare(b.verse.id));
-    const top = lethalRows[0].land;
-    const tied = lethalRows.filter((r) => r.land === top);
+  const lethal = lethalOf(actor, vis, legal, tuning, fortune);
+  if (lethal) {
+    const { tied } = lethal;
     const scores = legal.map((v) => ({
       id: v.id,
       score: scoreVerse(actor, vis, v, tuning, fortune),
@@ -420,4 +444,4 @@ function maybeActivateOncePerFight(session, actor, legalPool) {
 }
 
 
-module.exports = { visibleOf, defenseConstant, expectedDamageOfEffect, filterReasons, chooseVerse, maybeActivateOncePerFight };
+module.exports = { visibleOf, defenseConstant, expectedDamageOfEffect, expectedDamageOfVerseVis, filterReasons, scoreVerse, lethalOf, chooseVerse, maybeActivateOncePerFight };
