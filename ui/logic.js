@@ -142,6 +142,15 @@ export function threatFor(buildB) {
   return CLASS_THREATS[buildB.clazz] || 'It is what it is. The Reading has no better line.';
 }
 
+/**
+ * T4.6 — feed the Reading the roster's hand-written counter lines (the 21
+ * §9 rows, plus any named fight). Boot wires this from data/enemies.js so
+ * THIS module stays dependency-free; the pure-function contract holds.
+ */
+export function registerThreatOverrides(map) {
+  if (map && typeof map === 'object') Object.assign(THREAT_OVERRIDES, map);
+}
+
 /* -- §10.8 the Reading card: formatting ----------------------------------- */
 
 /** Class id → display name (the card never shows raw snake_case ids). */
@@ -164,9 +173,13 @@ export function formatReading(reading, buildA, buildB, display, syncBand) {
   const rounds = reading && Number.isFinite(reading.avgRounds) ? Math.round(reading.avgRounds * 10) / 10 : null;
   const counter = reading && reading.counterLine ? reading.counterLine : null;
   const clsName = buildB.className || CLASS_NAMES[buildB.clazz] || buildB.clazz;
+  // T4.9 — Corvane's canon pre-fight announcement (§9.2 / D11)
+  const corvaneLine = buildB.name && /Corvane/.test(buildB.name)
+    ? 'Corvane has watched you fight. He has brought something that answers it.'
+    : null;
   return {
     head: `${buildB.name || 'Unknown'} · ${clsName} · L${buildB.level}`,
-    threat: threatFor(buildB),
+    threat: corvaneLine || threatFor(buildB),
     expect: win == null
       ? 'Expected: —'
       : `Expected: ${Math.round(win)}% win · ~${rounds} rounds${counter ? ' · your counter: ' + counter : ''}`,

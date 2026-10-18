@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| **Status** | **Phases 0–4 (T4.1–T4.5) complete** — decision baseline, engine core, balance harness, the first playable slice, and the **Content Data Layer**: 42 verses / 24 vows / 40 items / 40 sources as validated frozen data, every item mark live in the fight engine, plus **47 generated art assets** (4 class portraits · 21 enemy portraits · 10 chapter plates · 12 item icons) wired into the duel panels, scene plates and title. Next: T4.6–T4.12 (the 21-fight roster, Rites, named Echoes, XP, the Calendar, the content QA gate). |
+| **Status** | **Phases 0–4 COMPLETE (T4.1–T4.12)** — decision baseline, engine core, balance harness, the first playable slice, and the full **Content Data Layer**: 42 verses / 24 vows / 40 items / 40 sources, the **21-fight campaign roster** with every signature mechanic (sequences + Inheritance, Ledger's Ward, Unsanctioned & Salt-Soaked burns, the Mimic, the recording, the three phases), the four published **Rites** + both D10 levers + 4 Floor Rite-users, the **Floor parish** (8 named Echoes + 4 Rite-users, weaknesses engine-enforced), Corvane's **locked counterbuild** (D11), the **XP economy** + role map, the generated **Vigil's Calendar**, and the **content QA gate** in CI — plus **60 generated art assets** wired into the duel panels, scene plates, parish browser and title. Next: Phase 5 (loadout/reshaping/Echo AI) and the tuning wave the recorded advisories (N7/N10/N12/N13) route to the owner. |
 | **Design doc (canon)** | [`THE-ASHEN-CHOIR-v1.0.1.md`](THE-ASHEN-CHOIR-v1.0.1.md) — v1.0 with every approved decision applied and tagged. The untouched v1.0 is kept alongside for diffing. |
 | **Decision record** | [`docs/DECISIONS.md`](docs/DECISIONS.md) — verdicts on D1–D32, N1–N4, micro-gates, assumption register, reconciliations (24 vows / 40 items / 10 shrines). |
 | **Roadmap** | [`TASKS.md`](TASKS.md) — 12 phases, 110 tasks, dependency-aware, written so each task can be implemented without guessing. |
@@ -22,8 +22,8 @@ docs/ENGINE_RULES.md           the determinism coding standard (CI-enforced)
 docs/SCHEMAS.md                frozen data shapes + Echo Code validation rules
 docs/INVENTORY.md              content inventory targets (CI-tracked)
 data/schemas/                  validators + fixtures (T0.3)
-data/                           the Phase-4 content layer: classes, verses, vows, items, sources, loaders (T4.1–T4.5)
-assets/art/                     the Phase-4 art wave: portraits, plates, icons (raw generations gitignored — scripts/gen-art.mjs regenerates)
+data/                           the Phase-4 content layer: classes, verses, vows, items, sources, enemies, rites, named Echoes, Corvane, progression, the generated Calendar, loaders (T4.1–T4.12)
+assets/art/                     the Phase-4 art wave: 60 assets — portraits, the parish, plates, icons (raw generations gitignored — scripts/gen-art.mjs regenerates)
 documentation/                 the review corpus (00–05)
 engine/ rng/ sim/ story/ ui/ store/   module layout per [GDD] §15 (Phase 1 fills them)
 tools/                         CI gates: check-bans, audit-amendment, check-inventory

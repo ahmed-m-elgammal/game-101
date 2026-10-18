@@ -32,6 +32,7 @@ const KIND_FILES = {
   vows: ['data/vows.json'],
   items: ['data/items.json'],
   namedEchoes: ['data/named_echoes.json'],
+  riteUsers: ['data/rite_users.json'],
   rites: ['data/rites.json'],
   signatureVerbs: ['data/signature_verbs.json'],
   objectives: ['story/objectives.json'],
@@ -46,6 +47,21 @@ const KIND_FILES = {
 // counted rows are the validated rows.
 const JS_KINDS = { verses: '../data/verses.js', vows: '../data/vows.js', items: '../data/items.js' };
 
+// T4.6–T4.8: the roster wave authors its content as JS data modules too.
+// Each counter reads the live module (the loader validates every row at
+// boot, so the counted rows are the validated rows).
+const JS_COUNTERS = {
+  campaignDuels() { return require('../data/enemies.js').ENEMIES.length; },
+  signatureVerbs() { return Object.keys(require('../data/signature-verbs.js').SIGNATURE_VERBS).length; },
+  namedEchoes() { return require('../data/named-echoes.js').NAMED_ECHOES.length; },
+  riteUsers() { return require('../data/named-echoes.js').RITE_USERS.length; },
+  rites() {
+    const R = require('../data/rites.js').RITES;
+    return ['first_vespers', 'halbrey_passage', 'mother_bell_temperature', 'ilvane_three_phases']
+      .filter((id) => !!R[id]).length;
+  },
+};
+
 function countKind(kinds, target) {
   let n = 0;
   for (const rel of kinds) {
@@ -58,6 +74,9 @@ function countKind(kinds, target) {
       console.error(`check-inventory: ${rel} is not valid JSON (${e.message})`);
       process.exitCode = 1;
     }
+  }
+  if (n === 0 && JS_COUNTERS[target]) {
+    try { n += JS_COUNTERS[target](); } catch { /* module absent — still authoring */ }
   }
   if (n === 0 && JS_KINDS[target]) {
     try {

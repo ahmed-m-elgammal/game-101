@@ -1,0 +1,1149 @@
+{
+  "version": 1,
+  "generatedBy": "tools/calendar.js — [01] R9 (T4.11)",
+  "targetLine": "The campaign naturally delivers L9 by the Bellmouth; the finale crosses into L10.",
+  "xpThresholds": [
+    0,
+    40,
+    100,
+    180,
+    280,
+    400,
+    540,
+    700,
+    880,
+    1080
+  ],
+  "creation": {
+    "chapter": 0,
+    "label": "creation",
+    "versesUnlocked": [
+      {
+        "level": 1,
+        "id": "steady_breath",
+        "name": "Steady Breath",
+        "cls": "common"
+      },
+      {
+        "level": 1,
+        "id": "purify",
+        "name": "Purify",
+        "cls": "common"
+      },
+      {
+        "level": 1,
+        "id": "second_wind",
+        "name": "Second Wind",
+        "cls": "common"
+      },
+      {
+        "level": 1,
+        "id": "vigils_rest",
+        "name": "Vigil's Rest",
+        "cls": "common"
+      },
+      {
+        "level": 1,
+        "id": "stand_fast",
+        "name": "Stand Fast",
+        "cls": "common"
+      },
+      {
+        "level": 1,
+        "id": "rend",
+        "name": "Rend",
+        "cls": "ashblade"
+      },
+      {
+        "level": 1,
+        "id": "opening_cut",
+        "name": "Opening Cut",
+        "cls": "ashblade"
+      },
+      {
+        "level": 1,
+        "id": "flay",
+        "name": "Flay",
+        "cls": "ashblade"
+      },
+      {
+        "level": 1,
+        "id": "spark",
+        "name": "Spark",
+        "cls": "cinder_witch"
+      },
+      {
+        "level": 1,
+        "id": "cinderfall",
+        "name": "Cinderfall",
+        "cls": "cinder_witch"
+      },
+      {
+        "level": 1,
+        "id": "stoke",
+        "name": "Stoke",
+        "cls": "cinder_witch"
+      },
+      {
+        "level": 1,
+        "id": "bulwark_strike",
+        "name": "Bulwark Strike",
+        "cls": "gravewarden"
+      },
+      {
+        "level": 1,
+        "id": "hold_the_line",
+        "name": "Hold the Line",
+        "cls": "gravewarden"
+      },
+      {
+        "level": 1,
+        "id": "sepulchral_spikes",
+        "name": "Sepulchral Spikes",
+        "cls": "gravewarden"
+      },
+      {
+        "level": 1,
+        "id": "dirge",
+        "name": "Dirge",
+        "cls": "hollow_cantor"
+      },
+      {
+        "level": 1,
+        "id": "wither_note",
+        "name": "Wither Note",
+        "cls": "hollow_cantor"
+      },
+      {
+        "level": 1,
+        "id": "soul_siphon",
+        "name": "Soul Siphon",
+        "cls": "hollow_cantor"
+      }
+    ],
+    "itemsSourced": [
+      {
+        "id": "drowned_mantle",
+        "name": "Drowned Mantle",
+        "slot": "vestment",
+        "via": "floor_first_win",
+        "kind": "floor"
+      },
+      {
+        "id": "salt_widows_comb",
+        "name": "Salt Widow's Comb",
+        "slot": "relic",
+        "via": "floor_named_echo",
+        "kind": "floor"
+      }
+    ]
+  },
+  "chapters": [
+    {
+      "chapter": 1,
+      "act": 1,
+      "band": [
+        "1",
+        "2"
+      ],
+      "fights": [
+        {
+          "duel": 1,
+          "id": "bram",
+          "name": "Hollowed Sexton Bram",
+          "role": "regular",
+          "xp": 14,
+          "level": 1
+        },
+        {
+          "duel": 2,
+          "id": "sedge",
+          "name": "Tollward Sedge, the Bell-Ringer’s Echo",
+          "role": "boss",
+          "xp": 32,
+          "level": 2
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [
+        {
+          "level": 2,
+          "id": "drink_deep",
+          "name": "Drink Deep",
+          "cls": "ashblade"
+        },
+        {
+          "level": 2,
+          "id": "ashen_veil",
+          "name": "Ashen Veil",
+          "cls": "cinder_witch"
+        },
+        {
+          "level": 2,
+          "id": "gravebind",
+          "name": "Gravebind",
+          "cls": "gravewarden"
+        },
+        {
+          "level": 2,
+          "id": "tolling_bell",
+          "name": "Tolling Bell",
+          "cls": "hollow_cantor"
+        }
+      ],
+      "itemsSourced": [
+        {
+          "id": "pallbearers_mace",
+          "name": "Pallbearer's Mace",
+          "slot": "weapon",
+          "via": "ch1_choice_ruthless",
+          "kind": "choice"
+        },
+        {
+          "id": "sextons_shroud",
+          "name": "Sexton's Shroud",
+          "slot": "vestment",
+          "via": "ch1_choice_mercy",
+          "kind": "choice"
+        },
+        {
+          "id": "grave_shovel_of_bram",
+          "name": "Grave-Shovel of Bram",
+          "slot": "weapon",
+          "via": "ch1_choice_devotion",
+          "kind": "choice"
+        },
+        {
+          "id": "wick_cutter",
+          "name": "Wick-Cutter",
+          "slot": "weapon",
+          "via": "ch1_boss",
+          "kind": "boss"
+        },
+        {
+          "id": "candle_of_saint_orrin",
+          "name": "Candle of Saint Orrin",
+          "slot": "relic",
+          "via": "ch1_start",
+          "kind": "start"
+        }
+      ],
+      "vowsEarned": [],
+      "systemsOpened": [
+        "the duel",
+        "the Candle of Saint Orrin",
+        "Re-bells (free retries)",
+        "shrines (free reshaping)"
+      ],
+      "choiceRewards": [
+        {
+          "source": "ch1_choice_ruthless",
+          "tally": "ruthless",
+          "rewards": [
+            {
+              "id": "pallbearers_mace",
+              "name": "Pallbearer's Mace"
+            }
+          ],
+          "note": "Take the Pallbearer's Mace. (A2/F26 pin)"
+        },
+        {
+          "source": "ch1_choice_mercy",
+          "tally": "mercy",
+          "rewards": [
+            {
+              "id": "sextons_shroud",
+              "name": "Sexton's Shroud"
+            }
+          ],
+          "note": "Take the Sexton's Shroud. (A2/F26 pin)"
+        },
+        {
+          "source": "ch1_choice_devotion",
+          "tally": "devotion",
+          "rewards": [
+            {
+              "id": "grave_shovel_of_bram",
+              "name": "Grave-Shovel of Bram"
+            }
+          ],
+          "note": "Burn the hymn-book; the shovel is Bram's gift. (A2/F26 pin)"
+        }
+      ]
+    },
+    {
+      "chapter": 2,
+      "act": 1,
+      "band": [
+        "2",
+        "3"
+      ],
+      "fights": [
+        {
+          "duel": 3,
+          "id": "brack",
+          "name": "Toll-Warden Brack",
+          "role": "regular",
+          "xp": 26,
+          "level": 4
+        },
+        {
+          "duel": 4,
+          "id": "reaper_silt",
+          "name": "The Reaper of the Silt",
+          "role": "boss",
+          "xp": 53,
+          "level": 5
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [
+        {
+          "level": 3,
+          "id": "reap_the_red",
+          "name": "Reap the Red",
+          "cls": "ashblade"
+        },
+        {
+          "level": 3,
+          "id": "choking_smoke",
+          "name": "Choking Smoke",
+          "cls": "cinder_witch"
+        },
+        {
+          "level": 3,
+          "id": "mend_the_mortar",
+          "name": "Mend the Mortar",
+          "cls": "gravewarden"
+        },
+        {
+          "level": 3,
+          "id": "dissonance",
+          "name": "Dissonance",
+          "cls": "hollow_cantor"
+        }
+      ],
+      "itemsSourced": [
+        {
+          "id": "bellmetal_maul",
+          "name": "Bellmetal Maul",
+          "slot": "weapon",
+          "via": "ch2_choice",
+          "kind": "choice"
+        },
+        {
+          "id": "reliquary_lantern",
+          "name": "Reliquary Lantern",
+          "slot": "relic",
+          "via": "ch2_market",
+          "kind": "fixed"
+        },
+        {
+          "id": "salt_reapers_scythe",
+          "name": "Salt-Reaper's Scythe",
+          "slot": "weapon",
+          "via": "ch2_boss",
+          "kind": "boss"
+        },
+        {
+          "id": "tollwards_rod",
+          "name": "Tollward's Rod",
+          "slot": "weapon",
+          "via": "ch2_boss",
+          "kind": "boss"
+        },
+        {
+          "id": "bellmetal_gauntlets",
+          "name": "Bellmetal Gauntlets",
+          "slot": "vestment",
+          "via": "ch2_boss",
+          "kind": "boss"
+        }
+      ],
+      "vowsEarned": [],
+      "systemsOpened": [
+        "the Choir-Floor pity counter (over-level)",
+        "soft level-sync (D2)"
+      ],
+      "choiceRewards": [
+        {
+          "source": "ch2_choice",
+          "tally": null,
+          "rewards": [
+            {
+              "id": "bellmetal_maul",
+              "name": "Bellmetal Maul"
+            }
+          ],
+          "note": "§8.1 pins Bellmetal Maul to \"Ch2 choice\"; the per-tally pin is T4.11's Calendar call."
+        }
+      ]
+    },
+    {
+      "chapter": 3,
+      "act": 1,
+      "band": [
+        "3",
+        "4"
+      ],
+      "fights": [
+        {
+          "duel": 5,
+          "id": "drowned_choristers",
+          "name": "The Drowned Choristers",
+          "role": "regular",
+          "xp": 26,
+          "level": 4
+        },
+        {
+          "duel": 6,
+          "id": "pell",
+          "name": "Tithe-Collector Pell",
+          "role": "complication",
+          "xp": 43,
+          "level": 6
+        },
+        {
+          "duel": 7,
+          "id": "first_vespers",
+          "name": "First Vespers, the Drowned Cantor",
+          "role": "boss",
+          "xp": 67,
+          "level": 7
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [
+        {
+          "level": 4,
+          "id": "slip_the_hymn",
+          "name": "Slip the Hymn",
+          "cls": "ashblade"
+        },
+        {
+          "level": 4,
+          "id": "fan_the_flames",
+          "name": "Fan the Flames",
+          "cls": "cinder_witch"
+        },
+        {
+          "level": 4,
+          "id": "earthen_toll",
+          "name": "Earthen Toll",
+          "cls": "gravewarden"
+        },
+        {
+          "level": 4,
+          "id": "lullaby",
+          "name": "Lullaby",
+          "cls": "hollow_cantor"
+        }
+      ],
+      "itemsSourced": [
+        {
+          "id": "cantors_tuning_fork",
+          "name": "Cantor's Tuning Fork",
+          "slot": "weapon",
+          "via": "ch3_ruthless",
+          "kind": "choice"
+        },
+        {
+          "id": "deaf_wax",
+          "name": "Deaf Wax",
+          "slot": "relic",
+          "via": "ch3_market",
+          "kind": "fixed"
+        },
+        {
+          "id": "tithe_collectors_ledger",
+          "name": "Tithe-Collector's Ledger",
+          "slot": "relic",
+          "via": "ch3_boss",
+          "kind": "boss"
+        },
+        {
+          "id": "drowned_choristers_robe",
+          "name": "Drowned Chorister's Robe",
+          "slot": "vestment",
+          "via": "ch3_boss",
+          "kind": "boss"
+        }
+      ],
+      "vowsEarned": [],
+      "systemsOpened": [
+        "the Choir Floor",
+        "Echo binding",
+        "Echo Codes (import/export)"
+      ],
+      "choiceRewards": [
+        {
+          "source": "ch3_ruthless",
+          "tally": "ruthless",
+          "rewards": [
+            {
+              "id": "cantors_tuning_fork",
+              "name": "Cantor's Tuning Fork"
+            }
+          ],
+          "note": "Finish them. (§3 Ch3: \"Ruthless +1 grants Cantor's Tuning Fork\")"
+        },
+        {
+          "source": "ch3_mercy",
+          "tally": "mercy",
+          "rewards": [],
+          "note": "Let them go — grants +1 free stat point, not an item."
+        },
+        {
+          "source": "ch3_devotion",
+          "tally": "devotion",
+          "rewards": [],
+          "note": "Learn their song — grants the Twin Ledger (D3), not an item."
+        }
+      ]
+    },
+    {
+      "chapter": 4,
+      "act": 2,
+      "band": [
+        "4",
+        "5"
+      ],
+      "fights": [
+        {
+          "duel": 8,
+          "id": "sable",
+          "name": "Bone-Nurse Sable",
+          "role": "regular",
+          "xp": 30,
+          "level": 5
+        },
+        {
+          "duel": 9,
+          "id": "ysolde",
+          "name": "Ninth Sister Ysolde",
+          "role": "boss",
+          "xp": 67,
+          "level": 7
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [
+        {
+          "level": 5,
+          "id": "red_flurry",
+          "name": "Red Flurry",
+          "cls": "ashblade"
+        },
+        {
+          "level": 5,
+          "id": "conflagration",
+          "name": "Conflagration",
+          "cls": "cinder_witch"
+        },
+        {
+          "level": 5,
+          "id": "crypt_door",
+          "name": "Crypt Door",
+          "cls": "gravewarden"
+        },
+        {
+          "level": 5,
+          "id": "requiem",
+          "name": "Requiem",
+          "cls": "hollow_cantor"
+        }
+      ],
+      "itemsSourced": [
+        {
+          "id": "ysoldes_censer",
+          "name": "Ysolde's Censer",
+          "slot": "weapon",
+          "via": "ch4_ruthless",
+          "kind": "choice"
+        },
+        {
+          "id": "marrow_furnace",
+          "name": "Marrow-Furnace",
+          "slot": "relic",
+          "via": "ch4_ruthless",
+          "kind": "choice"
+        },
+        {
+          "id": "wardens_cassock",
+          "name": "Warden's Cassock",
+          "slot": "vestment",
+          "via": "ch4_mercy",
+          "kind": "choice"
+        },
+        {
+          "id": "thimble_coat",
+          "name": "Thimble Coat",
+          "slot": "vestment",
+          "via": "ch4_fixed",
+          "kind": "fixed"
+        },
+        {
+          "id": "gravedust_censer",
+          "name": "Gravedust Censer",
+          "slot": "relic",
+          "via": "ch4_warrens",
+          "kind": "exploration"
+        }
+      ],
+      "vowsEarned": [
+        {
+          "id": "ysoldes_vow",
+          "name": "Ysolde's Vow",
+          "via": "ch4_devotion"
+        },
+        {
+          "id": "wardens_oath",
+          "name": "The Warden's Oath",
+          "via": "ch4_mercy"
+        }
+      ],
+      "systemsOpened": [
+        "the Twin Ledger (Ch3 Devotion, D3)"
+      ],
+      "choiceRewards": [
+        {
+          "source": "ch4_ruthless",
+          "tally": "ruthless",
+          "rewards": [
+            {
+              "id": "ysoldes_censer",
+              "name": "Ysolde's Censer"
+            },
+            {
+              "id": "marrow_furnace",
+              "name": "Marrow-Furnace"
+            }
+          ],
+          "note": "§8.1/§8.3 both pin rewards to Ch4 Ruthless."
+        },
+        {
+          "source": "ch4_mercy",
+          "tally": "mercy",
+          "rewards": [
+            {
+              "id": "wardens_cassock",
+              "name": "Warden's Cassock"
+            }
+          ],
+          "note": "Disarm Ysolde. (§7.2/§8.2)"
+        },
+        {
+          "source": "ch4_devotion",
+          "tally": "devotion",
+          "rewards": [],
+          "note": "Answer Ysolde — grants the story vow Ysolde's Vow (§7.2)."
+        }
+      ]
+    },
+    {
+      "chapter": 5,
+      "act": 2,
+      "band": [
+        "5",
+        "6"
+      ],
+      "fights": [
+        {
+          "duel": 10,
+          "id": "wick_lad",
+          "name": "The Wick Lad",
+          "role": "regular",
+          "xp": 30,
+          "level": 5
+        },
+        {
+          "duel": 11,
+          "id": "corvane",
+          "name": "Corvane, the Grey Duelist",
+          "role": "boss",
+          "xp": 67,
+          "level": 7
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [
+        {
+          "level": 6,
+          "id": "crimson_waltz",
+          "name": "Crimson Waltz",
+          "cls": "ashblade"
+        },
+        {
+          "level": 6,
+          "id": "cinder_shroud",
+          "name": "Cinder Shroud",
+          "cls": "cinder_witch"
+        },
+        {
+          "level": 6,
+          "id": "stone_vigil",
+          "name": "Stone Vigil",
+          "cls": "gravewarden"
+        },
+        {
+          "level": 6,
+          "id": "grave_cadence",
+          "name": "Grave Cadence",
+          "cls": "hollow_cantor"
+        }
+      ],
+      "itemsSourced": [
+        {
+          "id": "corvanes_blade",
+          "name": "Corvane's Blade",
+          "slot": "weapon",
+          "via": "ch5_ruthless",
+          "kind": "choice"
+        },
+        {
+          "id": "corvanes_grey_coat",
+          "name": "Corvane's Grey Coat",
+          "slot": "relic",
+          "via": "ch5_mercy",
+          "kind": "choice"
+        },
+        {
+          "id": "grey_pilgrims_coat",
+          "name": "Grey Pilgrim's Coat",
+          "slot": "vestment",
+          "via": "ch5_market",
+          "kind": "fixed"
+        },
+        {
+          "id": "hourglass_of_ash",
+          "name": "Hourglass of Ash",
+          "slot": "relic",
+          "via": "ch5_market",
+          "kind": "fixed"
+        },
+        {
+          "id": "choir_scale_blade",
+          "name": "Choir-Scale Blade",
+          "slot": "weapon",
+          "via": "vendor_ledger_house",
+          "kind": "vendor"
+        }
+      ],
+      "vowsEarned": [
+        {
+          "id": "ledgers_price",
+          "name": "Ledger's Price",
+          "via": "ch5_ruthless"
+        },
+        {
+          "id": "grey_duelist",
+          "name": "Grey Duelist",
+          "via": "ch5_mercy"
+        }
+      ],
+      "systemsOpened": [
+        "Corvane’s locked counterbuild (D11)"
+      ],
+      "choiceRewards": [
+        {
+          "source": "ch5_ruthless",
+          "tally": "ruthless",
+          "rewards": [
+            {
+              "id": "corvanes_blade",
+              "name": "Corvane's Blade"
+            }
+          ],
+          "note": "Take Corvane's contract. (§7.2/§8.1)"
+        },
+        {
+          "source": "ch5_mercy",
+          "tally": "mercy",
+          "rewards": [
+            {
+              "id": "corvanes_grey_coat",
+              "name": "Corvane's Grey Coat"
+            }
+          ],
+          "note": "Spare Corvane. (§7.2/§8.3)"
+        }
+      ]
+    },
+    {
+      "chapter": 6,
+      "act": 2,
+      "band": [
+        "6",
+        "7"
+      ],
+      "fights": [
+        {
+          "duel": 12,
+          "id": "grast",
+          "name": "Furnace-Warden Grast",
+          "role": "regular",
+          "xp": 38,
+          "level": 7
+        },
+        {
+          "duel": 13,
+          "id": "halbrey",
+          "name": "Founder Halbrey",
+          "role": "complication",
+          "xp": 53,
+          "level": 8
+        },
+        {
+          "duel": 14,
+          "id": "mother_bell",
+          "name": "Mother Bell",
+          "role": "boss",
+          "xp": 74,
+          "level": 8
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [
+        {
+          "level": 7,
+          "id": "blood_ledger",
+          "name": "Blood Ledger",
+          "cls": "ashblade"
+        },
+        {
+          "level": 7,
+          "id": "sear_the_note",
+          "name": "Sear the Note",
+          "cls": "cinder_witch"
+        },
+        {
+          "level": 7,
+          "id": "last_rites",
+          "name": "Last Rites",
+          "cls": "gravewarden"
+        },
+        {
+          "level": 7,
+          "id": "seventh_verse",
+          "name": "Seventh Verse",
+          "cls": "hollow_cantor"
+        }
+      ],
+      "itemsSourced": [
+        {
+          "id": "founders_chisel",
+          "name": "Founder's Chisel",
+          "slot": "weapon",
+          "via": "ch6_compact",
+          "kind": "fixed"
+        },
+        {
+          "id": "cinder_apron",
+          "name": "Cinder Apron",
+          "slot": "vestment",
+          "via": "ch6_compact",
+          "kind": "fixed"
+        },
+        {
+          "id": "founders_leather",
+          "name": "Founder's Leather",
+          "slot": "vestment",
+          "via": "ch6_compact",
+          "kind": "fixed"
+        },
+        {
+          "id": "rites_of_passage",
+          "name": "Rites of Passage",
+          "slot": "weapon",
+          "via": "ch6_halbrey",
+          "kind": "boss"
+        },
+        {
+          "id": "bell_of_nine_tolls",
+          "name": "Bell of Nine Tolls",
+          "slot": "relic",
+          "via": "ch6_boss",
+          "kind": "boss"
+        }
+      ],
+      "vowsEarned": [
+        {
+          "id": "twelve_tolls",
+          "name": "Twelve Tolls",
+          "via": "ch6_ruthless"
+        },
+        {
+          "id": "turned_pour",
+          "name": "The Turned Pour",
+          "via": "ch6_devotion"
+        }
+      ],
+      "systemsOpened": [
+        "the Temperature bar (Mother Bell, §9.2)"
+      ],
+      "choiceRewards": [
+        {
+          "source": "ch6_ruthless",
+          "tally": "ruthless",
+          "rewards": [],
+          "note": "Feed the furnace — grants the story vow Twelve Tolls (§7.2)."
+        },
+        {
+          "source": "ch6_devotion",
+          "tally": "devotion",
+          "rewards": [],
+          "note": "Turn the pour — grants the story vow The Turned Pour (§7.2)."
+        }
+      ]
+    },
+    {
+      "chapter": 7,
+      "act": 3,
+      "band": [
+        "7",
+        "8"
+      ],
+      "fights": [
+        {
+          "duel": 15,
+          "id": "yune",
+          "name": "Lector Yune",
+          "role": "regular",
+          "xp": 42,
+          "level": 8
+        },
+        {
+          "duel": 16,
+          "id": "first_movement",
+          "name": "The Pale Cantor, First Movement",
+          "role": "boss",
+          "xp": 81,
+          "level": 9
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [],
+      "itemsSourced": [
+        {
+          "id": "orrery_robe",
+          "name": "Orrery Robe",
+          "slot": "vestment",
+          "via": "ch7_boss",
+          "kind": "boss"
+        },
+        {
+          "id": "pale_ash_blade",
+          "name": "Pale Ash Blade",
+          "slot": "weapon",
+          "via": "ch7_orrery",
+          "kind": "fixed"
+        },
+        {
+          "id": "ash_glazed_brass",
+          "name": "Ash-Glazed Brass",
+          "slot": "vestment",
+          "via": "ch7_orrery",
+          "kind": "fixed"
+        },
+        {
+          "id": "orrery_lens",
+          "name": "Orrery Lens",
+          "slot": "relic",
+          "via": "ch7_orrery",
+          "kind": "fixed"
+        }
+      ],
+      "vowsEarned": [
+        {
+          "id": "fixed_point",
+          "name": "Fixed Point",
+          "via": "ch7_devotion"
+        },
+        {
+          "id": "no_paper",
+          "name": "No Paper",
+          "via": "ch7_mercy"
+        },
+        {
+          "id": "kept_name",
+          "name": "The Kept Name",
+          "via": "ch7_ruthless"
+        }
+      ],
+      "systemsOpened": [
+        "the ninth class verse (the L7 consolidation beat, [01] R6)"
+      ],
+      "choiceRewards": [
+        {
+          "source": "ch7_devotion",
+          "tally": "devotion",
+          "rewards": [],
+          "note": "Read the name aloud — grants the story vow Fixed Point (§7.2)."
+        },
+        {
+          "source": "ch7_mercy",
+          "tally": "mercy",
+          "rewards": [],
+          "note": "Burn the record — grants the story vow No Paper (§7.2)."
+        },
+        {
+          "source": "ch7_ruthless",
+          "tally": "ruthless",
+          "rewards": [],
+          "note": "Take the name and keep it — grants the story vow The Kept Name (D30)."
+        }
+      ]
+    },
+    {
+      "chapter": 8,
+      "act": 3,
+      "band": [
+        "8",
+        "9"
+      ],
+      "fights": [
+        {
+          "duel": 17,
+          "id": "tide_bound",
+          "name": "The Tide-Bound",
+          "role": "regular",
+          "xp": 46,
+          "level": 9
+        },
+        {
+          "duel": 18,
+          "id": "oren",
+          "name": "Sister Oren, Keeper of the Gate",
+          "role": "boss",
+          "xp": 81,
+          "level": 9
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [],
+      "itemsSourced": [
+        {
+          "id": "vigils_ring",
+          "name": "Vigil's Ring",
+          "slot": "relic",
+          "via": "ch8_ruthless",
+          "kind": "choice"
+        },
+        {
+          "id": "vigils_mantle",
+          "name": "Vigil's Mantle",
+          "slot": "vestment",
+          "via": "ch8_ruthless",
+          "kind": "choice"
+        },
+        {
+          "id": "tide_soaked_vestment",
+          "name": "Tide-Soaked Vestment",
+          "slot": "vestment",
+          "via": "ch8_lower_silence",
+          "kind": "fixed"
+        },
+        {
+          "id": "leaden_key_of_the_gate",
+          "name": "Leaden Key of the Gate",
+          "slot": "relic",
+          "via": "ch8_lower_silence",
+          "kind": "fixed"
+        }
+      ],
+      "vowsEarned": [
+        {
+          "id": "oren_s_post",
+          "name": "Oren's Post",
+          "via": "ch8_mercy"
+        },
+        {
+          "id": "long_walk_down",
+          "name": "The Long Walk Down",
+          "via": "ch8_devotion"
+        }
+      ],
+      "systemsOpened": [],
+      "choiceRewards": [
+        {
+          "source": "ch8_mercy",
+          "tally": "mercy",
+          "rewards": [],
+          "note": "Send her up first — grants the story vow Oren's Post (D4)."
+        },
+        {
+          "source": "ch8_devotion",
+          "tally": "devotion",
+          "rewards": [],
+          "note": "Walk past her — grants the story vow The Long Walk Down (§7.2)."
+        },
+        {
+          "source": "ch8_ruthless",
+          "tally": "ruthless",
+          "rewards": [
+            {
+              "id": "vigils_ring",
+              "name": "Vigil's Ring"
+            },
+            {
+              "id": "vigils_mantle",
+              "name": "Vigil's Mantle"
+            }
+          ],
+          "note": "§8.2/§8.3 both pin rewards to Ch8 Ruthless."
+        }
+      ]
+    },
+    {
+      "chapter": 9,
+      "act": 3,
+      "band": [
+        "9",
+        "10"
+      ],
+      "fights": [
+        {
+          "duel": 19,
+          "id": "unbound_chorus",
+          "name": "The Unbound Chorus",
+          "role": "regular",
+          "xp": 46,
+          "level": 9
+        },
+        {
+          "duel": 20,
+          "id": "ilvanes_second",
+          "name": "Ilvane’s Second",
+          "role": "complication",
+          "xp": 63,
+          "level": 10
+        },
+        {
+          "duel": 21,
+          "id": "ilvane",
+          "name": "The Pale Cantor Ilvane",
+          "role": "boss",
+          "xp": 88,
+          "level": 10
+        }
+      ],
+      "chapterCompletionXp": 10,
+      "versesUnlocked": [],
+      "itemsSourced": [
+        {
+          "id": "choir_seal",
+          "name": "Choir-Seal",
+          "slot": "relic",
+          "via": "ch9_choir",
+          "kind": "fixed"
+        }
+      ],
+      "vowsEarned": [],
+      "systemsOpened": [
+        "The Orrery (post-campaign summary)",
+        "the Choir Floor after the ending"
+      ],
+      "choiceRewards": []
+    }
+  ]
+}

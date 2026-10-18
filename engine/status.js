@@ -203,6 +203,10 @@ function tickAtTurnStart(f, tuning, mods, onTrue, onEvent) {
     if (burn.selfTick && burn.srcSide) {
       onEvent({ kind: 'selfTick', side: burn.srcSide, amount: burn.selfTick });
     }
+    // UNSANCTIONED BURN (T4.6, §9.2 #9): the VICTIM pays 1 Resolve per tick.
+    if (burn.resolveTax) {
+      onEvent({ kind: 'resolveTax', amount: burn.resolveTax });
+    }
     burn.turns -= 1;
     if (burn.turns <= 0) f.statuses.burn = null;
   }

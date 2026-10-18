@@ -13,5 +13,6 @@ export {
   createSession, legalVerses, submitChoice, step, runToCompletion,
   runFight, resultsOf, ledgerVerdict, executeVerse,
 } from './fight.js';
+export { evalRites, temperatureState, temperatureDefenseMult } from './rites.js';
 export { CANON } from '../data/config.js';
 export { createTuning, diffTuning, TUNING_TAGS } from '../tuning.js';

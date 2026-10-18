@@ -19,6 +19,8 @@
  * jitter/Fortune/crit/Ward and skip only the mitigation term.
  */
 
+const { temperatureDefenseMult } = require('./rites.js');
+
 /**
  * Mitigation summation — every source into ONE value, then the cap.
  * Fray multiplies Guard BEFORE the rate (×0.6); Brace adds +40% (Bastion
@@ -101,6 +103,18 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
     raw *= 1 + actor.riteState.flags.damageBonusPct;
   }
 
+  // T4.6 — the fold (Widow Sedge): below the fold line her damage halves.
+  if (actor.sheet.special?.foldBelowHP
+    && actor.maxHp > 0 && actor.hp / actor.maxHp < actor.sheet.special.foldBelowHP) {
+    raw *= 0.5;
+  }
+
+  // T4.6 — Mother Bell's temperature (§9.2 #14 + D10): the DEFENDER's molten
+  // band takes 50% less DIRECT damage; the cooled band takes +30%; the Cantor
+  // sour window (Curse+Fray held) forces the cooled number. Audit-visible.
+  const temp = temperatureDefenseMult(target);
+  if (temp.mult !== 1) raw *= temp.mult;
+
   // 4. per-hit jitter — the only per-hit randomness
   const jitter = m.clamped(tuning.jitterCenter, tuning.jitterWidth);
 
@@ -114,9 +128,14 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
   // 6. crit — not affected by fortune. The threshold is rounded to the whole
   // percent the Measure table speaks in (re-test fix F-DAMAGE-1). The
   // Choir-Seal's hush rider cuts the HUSHED attacker's crit chance (T4.5).
-  const critChance = tuning.critBase + tuning.critPerHst * stats.hst
+  let critChance = tuning.critBase + tuning.critPerHst * stats.hst
     + (mods.critBonus || 0) + (spec.critBonus || 0)
     - (actor.statuses.hush?.critCut || 0);
+  // T4.6 — Mother Corvane's telegraphed crits (§9.4): her crits only land
+  // the turn AFTER she raises the blade; otherwise never.
+  if (actor.sheet.special?.telegraphCrits) {
+    critChance = actor.flags.critNext ? 1 : 0;
+  }
   const crit = m.band(100) < Math.round(critChance * 100);
   // Corvane's Blade tiers (F28/D31): the TARGET's HP band picks the mult.
   let critMult = mods.critMult || tuning.critMult;
@@ -169,9 +188,13 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
 
     // Thorns: attackers who land a DIRECT hit take X true damage (§5.5).
     // Founder's Chisel reflects +50% of the triggering damage on top (T4.5).
+    // D10 Warden lever: while the molten Bell's own rite doubles reflect
+    // income, Thorns and Spikes deal ×2 TO the Bell (the reflect recipient
+    // carries the flag).
     const th = target.statuses.thorns;
     if (th) {
-      const thVal = th.value + (target.mods.thornsReflectBonusPct ? target.mods.thornsReflectBonusPct * land : 0);
+      let thVal = th.value + (target.mods.thornsReflectBonusPct ? target.mods.thornsReflectBonusPct * land : 0);
+      if (actor.riteState && actor.riteState.flags.reflectDouble) thVal *= 2;
       thornsDealt = Math.round(thVal);
       actor.hp = Math.max(0, actor.hp - thornsDealt);
     }
@@ -186,6 +209,7 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
     dealt: preWard,      // post-mitigation, pre-ward (audit)
     land,                // what actually reached HP
     raw, jitter, crit, mit, warded, thornsDealt, markThorns,
+    tempMult: temp.mult, tempSoured: temp.soured, // temperature audit (D10)
     hpBefore, hpAfter: target.hp,
     candle, killed,
     fortune: state.fortune,

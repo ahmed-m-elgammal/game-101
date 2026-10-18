@@ -468,7 +468,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T2.3 — Roster conformance & campaign-wall asserts
-- [ ] T2.3 done *(2026-10-18: tool built and green on FIXTURE data — budget conformance D7/N5 + per-fight N6 variance + r20 ceiling hard; wall/boss bands advisory. Main checkbox stays open until the real 21-fight roster (T4.6) runs the bands; `tools/asserts/roster.js` re-runs nightly then.)*
+- [ ] T2.3 done *(2026-10-18: tool built and green on FIXTURE data — budget conformance D7/N5 + per-fight N6 variance + r20 ceiling hard; wall/boss bands advisory. **T4.6 landed: the real 21-fight roster now runs the bands** — `tools/asserts/roster.js` executes both passes (hard rows green on all 21: budget ±0, σ ≤ 12%, r20 ceiling; §9.5 readability holds 13/21, the D10 Mother Bell row and the §17 final-boss band measured as recorded advisories → N12; promotion to hard is the T4.12/owner call. This checkbox stays open for the ±8-point per-wall pacing contract, T2.7's sheet.)*
 
 **Goal:** verify the 21-fight roster against its own rules: budget conformance (D7 formula), two-class minimum clears, no universal walls, boss bands, variance bounds per fight.
 **Implementation:**
@@ -752,7 +752,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 # Phase 4 — Content Data Layer
 
-> **Progress (2026-10-18):** T4.1–T4.5 COMPLETE — the content data layer, vows, items and the mark engine are live (1,236/1,236 tests, bans/amendment gates green, N10 recorded). T4.6–T4.12 (roster, Rites, named Echoes, Corvane, XP, Calendar, QA gate) remain.
+> **Progress (2026-10-18, second pass):** T4.1–T4.12 COMPLETE — the full Content Data Layer is live: the 21-fight roster with sequences/Inheritance and every signature mechanic, the four published Rites + the D10 levers + 4 Floor Rite-users, the Floor parish (8+4), Corvane's locked counterbuild, the XP economy, the generated Calendar, and the CI QA gate (1,303/1,303 tests; bans/amendment/inventory/calendar/content gates green; N11/N12/N13 recorded; art wave extended to 60 assets).
 
 **Purpose:** every number and name in `[GDD] §5–§9` as validated data: classes, 42 verses, 23 vows, 41 items, the 21-fight roster, Rites, named Echoes, Corvane's counter table, XP tables, and the generated Vigil's Calendar. `[GDD] §17` risk #5 says it directly: *write the data tables first, the prose second.*
 **Phase completion criteria:** T0.5's inventory check green; every row schema-valid; budget conformance (T2.3) green on the real roster; the Calendar generates byte-identical to the tables.
@@ -852,7 +852,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.6 — Enemy roster: 21 builds, verbs, counters, scripted openers
-- [ ] T4.6 done
+- [x] T4.6 done (2026-10-18 — data/enemies.js: the 21 rows verbatim (stats/HP/counter lines), budget-asserted 33+2(L−1) ±0 via the frozen enemy schema (Mother Bell the declared A6 hybrid); 21 signature verbs as data (data/signature-verbs.js); scripted openers in the ENG-9 grammar; sequences with F34/D31 Inheritance (Choristers) and plain sequencing (Unbound Chorus, three budget-conformant authored voices); Pell's Ledger's Ward per N4 (30 Ward + verse-theft at 100% on his own cooldown); Ysolde's Unsanctioned Burn (+3 potency, 1-Resolve tax per tick); Tide-Bound's Salt-Soaked Burn (4 turns, refuses the Ward-DoT absorb); Oren's 4/turn regen; Yune's Mimic (last verse at 80%, Strike included); First Movement's fixed 3-turn recording (F20 pronoun "it"); Ilvane's Second debuff-free pool; Corvane per-class sheets (T4.9 consumes); the Turned Pour ally row per [02] R7d; Reading counter lines wired for all 21 via the boot registry; harness/roster.js runs the REAL roster (budget/variance/ceiling hard, bands measured-advisory → N12)
 
 **Goal:** all 21 campaign fights as full builds per `[GDD] §9` — stats, HP (incl. overrides 300/420), signature verbs, Reading counters, scripted openers, and the special-mechanics set (Choristers ×3 + Inheritance, Pell's Ledger's Ward, Corvane variable build, First Movement fixed opening, the Turned Pour ally sheet).
 **Implementation:**
@@ -874,7 +874,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.7 — Rites data: Halbrey, Mother Bell (+D10 levers), Ilvane III, Floor Rite-users
-- [ ] T4.7 done
+- [x] T4.7 done (2026-10-18 — data/rites.js carries the real rows: first_vespers (canon), halbrey_passage (66/33 Steel→Shade→Ember with the hymn re-keyed — a fired rite's damageType governs the carrier's whole pool), mother_bell_temperature (molten start-flags: 50% less direct, Thorns 8, Warden pool; cooled at 50%: +30%, Shade+Curse pool; temperatureState() exposes the bar data per §9.2 #14), ilvane_three_phases (heal 20% A4/D31, summons at 50/25 as interposing 55-HP bodies, Phase III learn per F21/D31); the D10 levers live: reflect income doubles against the molten Bell (Warden), Curse+Fray held forces the one-round sour window at cooled vulnerability (Cantor); 4 authored Floor Rite-users with registered rites (Nill/Vey/Deacon/Grave); every rite trigger validates against the frozen rite kind at load
 
 **Goal:** the four published boss Rites as `{trigger, change, line}` data plus the Floor's 4 Rite-user Echoes — the authored-feel mechanic of `[GDD] §5.7`.
 **Implementation:**
@@ -893,7 +893,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.8 — Named Echoes: 8 + 4 Rite-users
-- [ ] T4.8 done
+- [x] T4.8 done (2026-10-18 — data/named-echoes.js: the 8 §9.4 rows verbatim (names/classes/levels/Tolls/histories/weaknesses) + the 4 authored Rite-users = the 12-row population floor; every build player-legal (creation 4 + levelUps 2(L−1), caps 10, unlock-legal verses, class-legal vows); weaknesses are ENGINE ENFORCED gaps — Brother Ash control-immune (bleed/burn still land), Salt Widow kit-less, Vane HST 6, Swineherd all-in, Mother Corvane telegraphCrits (crits only land the turn after the raise; a blocked swing still spends it), Hollow Bishop noHeal, the Unpaid Bell setupTurns:3 (falls back to Strike, §12.3), Widow Sedge resolve-steal + foldBelowHP 0.3 (fold = half damage, no named verses); per-Echo harness exploitation sims green (phase4-echoes.test.js); 13 new portraits generated in the house style
 
 **Goal:** the Floor's parish per `[GDD] §9.4`: eight hand-built NPC Echoes rated 800–1400, each with name, class, level, Toll, history line, and a **deliberate weakness** that teaches — plus the 4 Rite-users from T4.7.
 **Implementation:**
@@ -910,7 +910,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.9 — Corvane counterbuild table + per-run lock *(decision-gated: D11)*
-- [ ] T4.9 done
+- [x] T4.9 done (2026-10-18 — data/corvane.js: the §9.2 counter table as data (6 lean rules + the neutral pool, each with its why); lean detection from slotted verses + vow + marks (the exact surfaces the Reading may read); deterministic seed from the chapter-start build string (fnv1a) — D11 LOCK verified ×20 identical retries; 6 counter sheets + 4 neutral sheets, all budget-conformant L7 and fight-legal; first-loss reveal line + the fired row exposed; the canon announcement wired into the Reading panel; "Fracture" (no v1.0.1 verse) mapped to earthen_toll per the row note; T5.7's resolve-hoarding ("hold to 6") noted on the sheet
 
 **Goal:** the counter table of `[GDD] §9.2` as data + the lock rule from `[02] R6`: counterbuild seeded from the player's build string at chapter start, locked for the run; first loss reveals the fired axis.
 **Implementation:**
@@ -929,7 +929,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.10 — XP tables, level bands & role map *(decision-gated: D1)*
-- [ ] T4.10 done
+- [x] T4.10 done (2026-10-18 — data/progression.js: canon thresholds verbatim; the formula round((10+4L)×role) matches every published R1 example; the 21/21 role map per A3; Floor XP with per-opponent decay (first 8+2L, repeats 50% min 4, 25% under-level), +15/+10 onboarding, pays-once; **N11 recorded**: [01] R1's walk table carries three arithmetic slips against its own formula (Reaper row printed 40 vs formula 53; the two 66.5 roundings printed 66 vs Math.round 67) — the FORMULA is implemented, the walk's level column reproduces at every chapter except Ch4's arrival reading L5 (291 ≥ 280), which still sits inside Ch4's L4–5 act band; D1 holds: L9 by the Bellmouth, L10 crossed on Ilvane's corpse (cumulative 1157 vs the table's 1142); the erratum is the doc's, routed to the owner
 
 **Goal:** the XP economy of `[01] R1` as data — the system F3 found missing — plus the L9/L10 campaign target (D1) and the Choir-Floor terminology fix (N2).
 **Implementation:**
@@ -949,7 +949,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.11 — The Vigil's Calendar (generated unlock/reward table)
-- [ ] T4.11 done
+- [x] T4.11 done (2026-10-18 — tools/calendar.js generates data/calendar.json from the live tables (9 chapters + creation: fights with roles and per-fight XP, verses unlocked, items sourced, vows earned, systems opened, per-path choice rewards); the F26/A2 Ch1 mapping row is explicit (Ruthless→Pallbearer's Mace, Mercy→Sexton's Shroud, Devotion→Grave-Shovel of Bram); CI byte-diff green (npm run calendar; a drifted table fails --check — negative-tested); story columns (T6.5) plug in via the generator's bundle param without a rewrite
 
 **Goal:** `[01] R9` — one generated table listing per chapter: verses unlocked, items sourced, vows earned, systems opened, and per-path choice rewards (fixing F26: Ch1 Ruthless→Mace, Mercy→Shroud, Devotion→Shovel per A2).
 **Implementation:**
@@ -966,7 +966,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T4.12 — Content QA gate: counts, legality, reward-integrity
-- [ ] T4.12 done
+- [x] T4.12 done (2026-10-18 — tools/asserts/content.js wired into `npm run ci`: reconciled inventory counts green (42/24/40/40/21/21/8/4/4); schema sweep; reward-integrity a/b/c (non-item grants recorded: Ch3 Mercy stat point, Ch3 Devotion Twin Ledger per D3); all seven [00] §0.7 couplings asserted (XP↔bands↔sync with all 9 arrivals in-band, Fatigue↔fight-length measured 9.25 avg on mirrors, loss-loop↔XP purity, drops↔Codex one-source-each, Toll caps, manual parity, Vigil's-Rest↔resolve D17, the unlock calendar); §8.3 status counter/amplifier sweep — **N13 recorded**: the published tables carry no item/vow STUN amplifier (advisory, routed to the owner); N10 affinity advisory re-printed (6/3/10/6); negatives green (broken budget/Toll/rite/loader/calendar rows all turn red — phase4-gate.test.js)
 
 **Goal:** the CI gate that makes "content complete" objective: inventory counts (T0.5), schema validity, reward integrity, cross-doc couplings (`[00] §0.7`) — all green before story integration begins.
 **Implementation:**

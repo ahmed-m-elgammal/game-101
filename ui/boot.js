@@ -24,7 +24,9 @@ import { createStorage } from './store.js';
 import { DuelController } from './duel/controller.js';
 import { mountScene } from './scene/scene.js';
 import { CH1_OPENING } from './scene/fixture.js';
-import { sceneShape } from './logic.js';
+import { sceneShape, registerThreatOverrides } from './logic.js';
+import { COUNTER_LINES } from '../data/enemies.js';
+registerThreatOverrides(COUNTER_LINES); // the 21 §9 counter lines (T4.6)
 
 const app = document.getElementById('app');
 const store = createStorage();

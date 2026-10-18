@@ -162,6 +162,11 @@ function statusBlocked(f, key) {
   const m = f.mods || {};
   if ((m.immune || []).includes(key)) return true;
   if (key === 'hush' && f.statuses.brace && (m.immuneWhileBraced || []).includes('hush')) return true;
+  // T4.8 — named-Echo weakness mechanics (e.g. Brother Ash "cannot be
+  // debuffed"): control-family immunities as a REAL gap. The canon weakness
+  // text pairs it with "DoT beats him", so bleed/burn stay off the list.
+  const spec = f.sheet && f.sheet.special;
+  if (spec && Array.isArray(spec.debuffImmune) && spec.debuffImmune.includes(key)) return true;
   return false;
 }
 

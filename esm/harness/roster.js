@@ -12,10 +12,15 @@
  */
 
 import { buildSheet, checkBudget } from '../engine/fighter.js';
+import { STAT_KEYS } from '../data/classes.js';
 import { quickReading } from '../sim.js';
 import { mirrorPreset } from '../data/presets.js';
+import { archetypeBuild } from './archetypes.js';
 import { varianceProbe, TARGETS } from './asserts.js';
 import { CLASSES } from '../data/classes.js';
+import { ENEMIES, enemyBuild } from '../data/enemies.js';
+import { corvaneSheet } from '../data/corvane.js';
+import { ARCHETYPE_IDS } from './archetypes.js';
 
 export const FIXTURE_ROSTER = [
   {
@@ -93,5 +98,135 @@ export function rosterAsserts(opts = {}) {
     note:
       'Hard asserts: D7 budget conformance + N6 per-fight variance + r20 ceiling. ' +
       'Wall bands (§9.5 2/2b), boss bands (§17) and D10 Mother Bell bands activate on the real roster at T4.6.',
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * T4.6 — the REAL 21-fight roster. Hard asserts stay the fixture trio
+ * (D7 budget ±0, N6 per-fight variance, r20 ceiling) now over the canon
+ * rows; the §9.5 readability bands, the §17 boss bands and the D10 Mother
+ * Bell row run as MEASURED advisory rows — promotion to hard is the T4.12
+ * gate's call, recorded per row (never silent).
+ * ------------------------------------------------------------------ */
+
+/** Corvane is a variable build — the roster probe uses his neutral sheet. */
+export function campaignRoster() {
+  return ENEMIES.map((row) => {
+    const build = row.id === 'corvane'
+      ? corvaneSheet('corvane_neutral_ash')
+      : enemyBuild(row);
+    return {
+      id: row.id,
+      duel: row.duel,
+      chapter: row.chapter,
+      name: row.name,
+      source: `[GDD] §9.${row.chapter <= 3 ? 1 : row.chapter <= 6 ? 2 : 3} #${row.duel}`,
+      build,
+      declared: {
+        hybrid: row.cls === 'hybrid',
+        varies: row.cls === 'varies',
+        notes: row.notes || '',
+      },
+    };
+  });
+}
+
+const BOSS_IDS = new Set(['first_vespers', 'mother_bell', 'ilvane']);
+
+/**
+ * Run the real-roster conformance + band sweep.
+ * @param {object} opts { tuning, seedsPerFight=600, clearSeeds=200, classes?,
+ *                        archetypes=true }
+ *
+ * The clear-rate probe is the §9.5 read: per class, the BEST of the four
+ * harness archetypes (standard/aggressive/defensive/status) — "a build that
+ * beats it", not a generic mirror. The mirror preset still drives the
+ * variance probe (length distributions, not outcomes).
+ */
+export function realRosterAsserts(opts = {}) {
+  const tuning = opts.tuning;
+  const classes = opts.classes || Object.keys(CLASSES);
+  const seeds = opts.seedsPerFight || 600;
+  const clearSeeds = opts.clearSeeds || 200;
+  const useArchetypes = opts.archetypes !== false;
+  const rows = [];
+  const bands = [];
+
+  for (const entry of campaignRoster()) {
+    const sheet = buildSheet(entry.build, tuning); // throws if over budget
+    const conf = entry.declared.hybrid
+      ? { ok: true, sum: STAT_KEYS.reduce((s, k) => s + sheet.stats[k], 0), budget: 0 }
+      : checkBudget(sheet.stats, entry.build.level, tuning);
+
+    const perClass = [];
+    for (const clazz of classes) {
+      const player = mirrorPreset(clazz, Math.max(1, entry.build.level - 0));
+      const probe = varianceProbe(player, entry.build, { n: seeds, tuning });
+      let clearPct = 0;
+      let bestBuild = null;
+      const probes = useArchetypes ? ARCHETYPE_IDS : ['standard'];
+      for (const arch of probes) {
+        const candidate = archetypeBuild(clazz, arch, entry.build.level, tuning);
+        const raw = quickReading(candidate, entry.build, { n: clearSeeds, tuning });
+        const pct = raw.n ? (raw.winA / raw.n) * 100 : 0;
+        if (pct >= clearPct) { clearPct = pct; bestBuild = arch; }
+      }
+      perClass.push({
+        clazz,
+        budgetOk: conf.ok,
+        varianceOk: probe.pass,
+        worstSigmaPct: probe.worst ? probe.worst.sigmaPct : 0,
+        maxRounds: probe.buckets.length ? probe.buckets[probe.buckets.length - 1].len : 0,
+        clearPct,
+        bestBuild,
+      });
+    }
+
+    rows.push({
+      id: entry.id,
+      duel: entry.duel,
+      name: entry.name,
+      stage: 'REAL-ROSTER',
+      budget: { ok: conf.ok, sum: conf.sum, budgetForLevel: conf.budget },
+      declared: entry.declared,
+      perClass,
+      allBudgetsOk: conf.ok && perClass.every((p) => p.budgetOk),
+      allVarianceOk: perClass.every((p) => p.varianceOk),
+      withinCeiling: perClass.every((p) => p.maxRounds <= TARGETS.maxRoundsCeiling),
+    });
+
+    // §9.5 rule 2: ≥2 of 4 classes have a build beating it at ≥55%.
+    // (Mirror presets are the probe; a "correct build" probe rides the
+    // archetype matrix at T2.3/T2.7. The mirror read is the honest floor.)
+    const clears = perClass.map((p) => p.clearPct).sort((a, b) => b - a);
+    bands.push({
+      id: entry.id,
+      kind: BOSS_IDS.has(entry.id) ? 'boss' : 'readability',
+      readability2x55: clears[1] >= 55,
+      top2: clears.slice(0, 2),
+      allClears: perClass.map((p) => ({ clazz: p.clazz, clearPct: p.clearPct })),
+      bossBand40: BOSS_IDS.has(entry.id) ? clears[0] >= 40 : null,
+    });
+  }
+
+  const motherBell = rows.find((r) => r.id === 'mother_bell');
+  const mbClears = motherBell
+    ? Object.fromEntries(motherBell.perClass.map((p) => [p.clazz, p.clearPct]))
+    : null;
+
+  return {
+    stage: 'REAL-ROSTER',
+    rows,
+    bands,
+    motherBell: mbClears && {
+      ashbladeCinder55: mbClears.ashblade >= 55 && mbClears.cinder_witch >= 55,
+      wardenCantor40: mbClears.gravewarden >= 40 && mbClears.hollow_cantor >= 40,
+      clears: mbClears,
+      row: 'D10 outcome: Ashblade/Cinder ≥55%; Warden/Cantor ≥40% post-lever ([02] R4)',
+    },
+    pass: rows.every((r) => r.allBudgetsOk && r.allVarianceOk && r.withinCeiling),
+    note:
+      'Hard: D7 budget ±0 + N6 variance + r20 ceiling over the 21 canon rows. ' +
+      'Advisory (promotion at T4.12): §9.5 readability ≥2×55, §17 boss ≥40, D10 Mother Bell row.',
   };
 }

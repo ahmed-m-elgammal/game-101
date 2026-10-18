@@ -144,8 +144,12 @@ export function buildSheet(build, tuning) {
     : finalStats(build, tuning);
 
   if (build.isEnemy) {
-    const conf = checkBudget(stats, build.level, tuning);
-    if (!conf.ok) throw new Error(`Enemy over budget: ${conf.sum} vs ${conf.budget} (budget ${build.level})`);
+    // Declared A6 hybrids (Mother Bell) carry the +2 override like their HP
+    // override — the same exemption the frozen `enemy` schema grants `hybrid`.
+    if (!build.budgetOverride) {
+      const conf = checkBudget(stats, build.level, tuning);
+      if (!conf.ok) throw new Error(`Enemy over budget: ${conf.sum} vs ${conf.budget} (budget ${build.level})`);
+    }
   }
 
   const maxHp = build.hpOverride != null
@@ -167,10 +171,16 @@ export function buildSheet(build, tuning) {
     // player panels fall back to the class portrait. Absent art degrades to
     // the CSS plate — UI-only, never read by the math.
     art: build.art || null,
-    verses: (build.verses || []).slice(0, 4),
+    // T4.6: enemies may carry the full phase pool (Mother Bell's 8-verse
+    // temperature pool); the 4-slot rule is a PLAYER loadout rule (§6).
+    verses: build.isEnemy ? (build.verses || []).slice() : (build.verses || []).slice(0, 4),
     items: build.items || [],
     isEnemy: !!build.isEnemy,
     rite: build.rite || null,
+    // T4.6 special-mechanics block (verbatim from the data row; the engine
+    // reads it, never writes it). Sequence rides separately.
+    special: build.special ? structuredClone(build.special) : null,
+    sequence: build.sequence ? structuredClone(build.sequence) : null,
     // T3.6 scripted opener (minimal engine hook, ENG-9; the full doctrine
     // scripting is T5.4/T5.7 and supersedes this): a deterministic queue of
     // verse ids the AI casts before falling back to the scorer. Enemies only.
