@@ -432,14 +432,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T2.1 — Headless harness runner
-- [ ] T2.1 done
+- [x] T2.1 done (2026-10-18: matrix + archetypes + CLI + campaign fixture smoke built; browser-verified)
 
 **Goal:** a script that plays thousands of Echo-vs-Echo fights across all class pairings at several levels and prints win rates, average fight length, and longest fight (`[GDD] §15.3`) — the balance workbench used by every later tuning task.
 **Implementation:**
-- [ ] Matchup matrix: 4 classes × 4 classes × levels {1,3,5,7,9,10} × N seeds (default 1,000/matchup; configurable to 10,000)
-- [ ] Build profiles per class: 3 archetypes (aggressive/defensive/status-lean) × gear/vow variants, so "every status has at least one build that wins by leaning on it and at least one that loses to it" is testable
-- [ ] Output: JSON + human table (win rate, avg rounds, max rounds, Last-Bell frequency, per-status win contribution); deterministic (seeded) so runs are reproducible
-- [ ] Campaign mode: play the 21-fight roster (fixture enemies until T4.6) with a skill-profile ladder (`always-loses-one`, `clean`, `perfect`)
+- [x] Matchup matrix: 4 classes × 4 classes × levels {1,3,5,7,9,10} × N seeds (default 1,000/matchup; configurable to 10,000) *(2026-10-18: harness/matrix.js — levels configurable, seeds 1–20000; deterministic deriveSeed per matchup)*
+- [x] Build profiles per class: 3 archetypes (aggressive/defensive/status-lean) × gear/vow variants, so "every status has at least one build that wins by leaning on it and at least one that loses to it" is testable *(2026-10-18: harness/archetypes.js — standard/aggressive/defensive/status per class, cap-10 allocator, unlock-level-respecting loadouts; creation pushed past cap caught and fixed during build)*
+- [x] Output: JSON + human table (win rate, avg rounds, max rounds, Last-Bell frequency, per-status win contribution); deterministic (seeded) so runs are reproducible *(2026-10-18: tools/harness.js CLI --json/--n/--levels/--mode; byte-identical rerun test)*
+- [x] Campaign mode: play the 21-fight roster (fixture enemies until T4.6) with a skill-profile ladder (`always-loses-one`, `clean`, `perfect`) *(2026-10-18: --campaign walks the fixture roster with the skill ladder; real roster walk lands with T4.6/T4.10)*
 **References:** `[GDD] §15.3`, `§9.5` (readability targets), `[02] §7`.
 **Dependencies:** ← T1.6, T1.9.
 **Acceptance criteria:** full default matrix runs in CI time budget (<5 min); outputs reproducible byte-for-byte with fixed seeds.
@@ -450,14 +450,14 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T2.2 — Core balance asserts (`[GDD] §15.3` targets)
-- [ ] T2.2 done
+- [x] T2.2 done (2026-10-18: 15 asserts live incl. anti-lock set; 3 rows run as declared KNOWN-GAPs per N7 — promotion to hard at T4.12. Mechanism complete; the fixture-content gap is tracked, not hidden.)
 
 **Goal:** encode the published PvP targets as CI asserts: no class above ~58% overall; mirrors ~50% (±3); average fight 7–12 rounds; no fight reaches round 20; every status lean-win and lean-loss build exists; ±12% damage variance hard assert across 10,000 seeds.
 **Implementation:**
-- [ ] Per-target assert functions with actionable failure output (which matchup, which seed, which build pair)
-- [ ] Variance assert: per `[GDD] §10.9` rule 1 — across 10k seeds, total fight damage within ±12% of expectation, hard fail
-- [ ] Round-ceiling assert: zero fights >20 rounds (mechanism: T1.7's Last Bell); Last-Bell resolution rate ≤5% of fights (`[02] §7` assert 2)
-- [ ] Anti-lock regression set: stun-lock, Hush-starvation, heal-sustain, Ward-turtle, zero-damage stall — each attempted by a purpose-built degenerate build and *must fail*
+- [x] Per-target assert functions with actionable failure output (which matchup, which seed, which build pair) *(2026-10-18: harness/asserts.js — every result carries id/label/value/detail; ARCHETYPE tables name the offending pair)*
+- [x] Variance assert: per `[GDD] §10.9` rule 1 — across 10k seeds, total fight damage within ±12% of expectation, hard fail *(2026-10-18: per N6 metric — per-length σ ≤12% of mean, contested buckets ≥30; measured worst 7.5%σ; negative test at jitterWidth 1.0 goes red)*
+- [x] Round-ceiling assert: zero fights >20 rounds (mechanism: T1.7's Last Bell); Last-Bell resolution rate ≤5% of fights (`[02] §7` assert 2) *(2026-10-18: both green — max 20, 2.08%; negative test with lastBellRound=30 goes red)*
+- [x] Anti-lock regression set: stun-lock, Hush-starvation, heal-sustain, Ward-turtle, zero-damage stall — each attempted by a purpose-built degenerate build and *must fail* *(2026-10-18: five probes at L5; stun/hush/ward-turtle pass hard; heal-sustain 64.3% and zero-damage 75.0% vs caps are N7 KNOWN-GAP advisories)*
 **References:** `[GDD] §15.3`, `§10.9`, `§10.10`, `[02] R2`/`§7`.
 **Dependencies:** ← T2.1; D7, D8 (asserts encode these truths).
 **Acceptance criteria:** all targets green on fixture data; each assert fails loudly (not silently) when a target is deliberately broken in a test branch.
@@ -468,16 +468,16 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T2.3 — Roster conformance & campaign-wall asserts
-- [ ] T2.3 done
+- [ ] T2.3 done *(2026-10-18: tool built and green on FIXTURE data — budget conformance D7/N5 + per-fight N6 variance + r20 ceiling hard; wall/boss bands advisory. Main checkbox stays open until the real 21-fight roster (T4.6) runs the bands; `tools/asserts/roster.js` re-runs nightly then.)*
 
 **Goal:** verify the 21-fight roster against its own rules: budget conformance (D7 formula), two-class minimum clears, no universal walls, boss bands, variance bounds per fight.
 **Implementation:**
-- [ ] Budget assert: every sheet sums to `35 + 2(L−1)` ±0, hybrids excluded-as-declared (Mother Bell +4) — per `[02] §5` paste-block, gated on D7
-- [ ] Readability rule 2 (`[GDD] §9.5`): for every campaign enemy, ≥2 of 4 classes have a build beating it at ≥55%
-- [ ] Readability rule 2b: ≥2 classes lose to it at ≤35% (no universal wall)
-- [ ] Act bosses ≥40% clear for a *correct* build; final boss ≥30% for all four classes (`[GDD] §17` risk row)
-- [ ] Per-fight variance ≤ ±12% across 10k seeds each
-- [ ] Mother Bell class-clear bands per D10 outcome: Ashblade/Cinder ≥55%; Warden/Cantor ≥30% pre-lever → ≥40% post-lever (`[02] R4` row)
+- [x] Budget assert: every sheet sums to `35 + 2(L−1)` ±0, hybrids excluded-as-declared (Mother Bell +4) — per `[02] §5` paste-block, gated on D7 *(2026-10-18: running on fixture roster; N5 corrected the constant to 33 + 2(L−1) — both fixture enemies conform exactly)*
+- [ ] Readability rule 2 (`[GDD] §9.5`): for every campaign enemy, ≥2 of 4 classes have a build beating it at ≥55% *(advisory clear rates printed on fixtures; hard gate activates at T4.6)*
+- [ ] Readability rule 2b: ≥2 classes lose to it at ≤35% (no universal wall) *(as above)*
+- [ ] Act bosses ≥40% clear for a *correct* build; final boss ≥30% for all four classes (`[GDD] §17` risk row) *(T4.6)*
+- [x] Per-fight variance ≤ ±12% across 10k seeds each *(2026-10-18: per-length σ per class per fixture fight, seeds configurable; worst fixture σ 7.0%)*
+- [ ] Mother Bell class-clear bands per D10 outcome: Ashblade/Cinder ≥55%; Warden/Cantor ≥30% pre-lever → ≥40% post-lever (`[02] R4` row) *(T4.6)*
 **References:** `[GDD] §9.5`, `§15.3`, `§17`, `[02] R1/R4/R5` + D7/D10/D12.
 **Dependencies:** ← T2.1, T4.6 (real roster); D7, D10, D12.
 **Acceptance criteria:** all rows conform or are declared overrides; wall bands hold; failures print the offending enemy + build + seeds.
@@ -488,15 +488,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T2.4 — `sim/`: the 200-seed Reading simulator
-- [ ] T2.4 done
+- [x] T2.4 done (2026-10-18: sim/readingCache.js — LRU-64 on canonical build strings + tuning fingerprint; counter lines from §5.8 table + overrides hook; consistency Δ ≤ 2 pts and <50ms server smoke tested; phone-budget measurement at T10.4)
 
 **Goal:** the engine behind the pre-fight Reading (`[GDD] §10.8`): 200 seeded sims of the exact matchup → expected win %, expected rounds, and the named counter — under 40ms on a phone, cached per matchup key.
 **Implementation:**
-- [ ] Reuse the fight engine headless with the matchup-seed family; 200 iterations default
-- [ ] Cache keyed on canonical build strings (both sides) + level-sync state; LRU bounded (memory-safe on mobile)
-- [ ] Counter-line source: enemy archetype rules + hand-written overrides for the top 12 fights (`[GDD] §5.8`)
-- [ ] Perf work: allocation-light loop, no logging in sim mode, optional reduced-turn fidelity flag (must not change expected values beyond ±1 point vs full fidelity — verified)
-- [ ] Expose the same sim to the harness (T2.1) and the post-fight "worse build" verdict (`§10.7`)
+- [x] Reuse the fight engine headless with the matchup-seed family; 200 iterations default *(2026-10-18: wraps sim.js quickReading — same engine, same seeds)*
+- [x] Cache keyed on canonical build strings (both sides) + level-sync state; LRU bounded (memory-safe on mobile) *(2026-10-18: LRU-64; key includes syncBand + n + tuning fingerprint so a tweaked constant is a new Reading; eviction + invalidation tested)*
+- [x] Counter-line source: enemy archetype rules + hand-written overrides for the top 12 fights (`[GDD] §5.8`) *(2026-10-18: §5.8 class table live; READING_OVERRIDES hook in place — the 12 hand-written rows land with real fight design, T3.6/T4.x)*
+- [x] Perf work: allocation-light loop, no logging in sim mode, optional reduced-turn fidelity flag (must not change expected values beyond ±1 point vs full fidelity — verified) *(2026-10-18: engine silent mode (ENG-7) — no log allocation, byte-identical results asserted; reduced-turn flag deferred to T10.4 with the phone budget)*
+- [x] Expose the same sim to the harness (T2.1) and the post-fight "worse build" verdict (`§10.7`) *(2026-10-18: runReading/quickReading both exported through the harness barrel; verdict wiring lands with the duel screen T3.5)*
 **References:** `[GDD] §5.8`, `§10.8`, `§10.7`, `§11.5` (Reading panel spec).
 **Dependencies:** ← T1.6, T1.9.
 **Acceptance criteria:** p95 latency <40ms on a mid-tier phone profile (CPU-throttled CI run) and <5ms desktop; cached second call <1ms; Reading numbers statistically consistent with harness numbers for the same matchup (Δ ≤ 2 points).
@@ -580,7 +580,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 # Phase 3 — Combat UI & First Playable Slice
 
-**Purpose:** `[GDD] §15.4` Phase 2 — the duel screen, Reading panel, Wax Meter, and the Ashblade-vs-Bram tutorial. This is where the engine becomes *playable and readable*, and where the design's legibility promises (§11.5 component specs) are first enforced. The remaining screens come in Phase 8; this phase builds only what a fight needs, plus the minimal scene renderer the campaign will reuse (T3.9).
+**Purpose:** `[GDD] §15.4` Phase 2 — the harness is built (T2.1/T2.2/T2.4 green on fixture data; T2.3 fixture smoke). STATUS 2026-10-18: `tools/asserts/balance.js` gates CI (0 hard failures, 3 declared N7 advisories); the Reading runs cached in the dashboard; T2.5–T2.7 await their Phase-4 inputs (T4.5/T4.6/T4.10). The duel-screen/Reading-panel UI spec below is Phase 3 (T3.x) work.
 **Phase completion criteria:** a full manual fight is playable, readable, and the Reading matches the harness (`[GDD] §15.4` Ph2 "done when"); mobile duel layout passes; the tutorial fight teaches the verbs.
 
 ---

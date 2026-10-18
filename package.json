@@ -1,7 +1,7 @@
 {
   "name": "the-ashen-choir",
   "version": "0.1.0",
-  "description": "The Ashen Choir — a build-driven, text-carried duel RPG with a deterministic async PvP ladder. Phase 0 baseline: decisions, schemas, scaffold. No game code yet (TASKS.md T0.1–T0.5 done; Phase 1 next).",
+  "description": "The Ashen Choir — a build-driven, text-carried duel RPG with a deterministic async PvP ladder. Phases 0-2: decisions baseline, engine core, and the Simulation & Balance Harness (T2.1/T2.2/T2.4 built; T2.3 fixture smoke).",
   "private": true,
   "type": "commonjs",
   "scripts": {
@@ -10,7 +10,12 @@
     "bans": "node tools/check-bans.js",
     "audit:amendment": "node tools/audit-amendment.js",
     "inventory": "node tools/check-inventory.js",
-    "inventory:strict": "node tools/check-inventory.js --strict"
+    "inventory:strict": "node tools/check-inventory.js --strict",
+    "harness": "node tools/harness.js",
+    "harness:campaign": "node tools/harness.js --campaign",
+    "balance": "node tools/asserts/balance.js --quick",
+    "balance:full": "node tools/asserts/balance.js",
+    "roster": "node tools/asserts/roster.js"
   },
   "engines": {
     "node": ">=18"

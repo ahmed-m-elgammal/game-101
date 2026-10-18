@@ -101,6 +101,12 @@ function createSession(buildA, buildB, opts) {
   session.logLine = (kind, side, text) => {
     session.log.push({ r: session.state.round, kind, side, text });
   };
+  if (opts.silent) {
+    // Harness mode (T2.1/T2.4): no log lines. Logging never feeds back into
+    // the math, so results are byte-identical with and without it (asserted
+    // in tests/phase2-harness.test.js).
+    session.logLine = () => {};
+  }
 
   if (tieBroken) {
     session.logLine('info', order[0].side,
