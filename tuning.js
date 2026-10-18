@@ -28,7 +28,6 @@ function deepMerge(base, over) {
   }
   return out;
 }
-
 /** Flatten CANON to path → value for the deviation report. */
 function flatten(obj, prefix = '') {
   const out = {};
@@ -72,6 +71,12 @@ const TUNING_TAGS = {
  * means the engine is running pure canon.
  */
 function diffTuning(tuning) {
+  // Absent/empty tuning IS canon (ENG-5): no deviations, never a crash.
+  // (Re-test finding F-CACHE-1: diffTuning(undefined) used to throw inside
+  // readingKey when the caller omitted opts.tuning — the documented-optional
+  // path. An empty override object also used to report every canon path as
+  // a spurious '(absent)' deviation.)
+  if (!tuning || typeof tuning !== 'object') return [];
   const flat = flatten(tuning);
   const diffs = [];
   for (const [path, value] of Object.entries(flat)) {

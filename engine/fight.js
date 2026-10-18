@@ -20,7 +20,7 @@ const { resolveDamage, trueTick } = require('./damage.js');
 const { resolveAtFightStart, resolveGain, canPay, pay, gain } = require('./resolve.js');
 const { telegraphFor, fatigueDamage, isLastBellRound, lastBellResolve } = require('./fatigue.js');
 const { evalRites } = require('./rites.js');
-const { getVerse, STRIKE } = require('../data/verses.js');
+const { getVerse, STRIKE, VERSE_BY_ID } = require('../data/verses.js');
 const { RITES } = require('../data/rites.js');
 const { chooseVerse } = require('./ai.js');
 
@@ -36,6 +36,7 @@ function toRuntime(sheet, side, tuning) {
     statuses: initStatuses(),
     cooldowns: {},
     casts: {},
+    firstCast: {}, // verse id → round of its first cast (Ilvane tie-break, F-FIGHT-3)
     flags: { candleUsed: false },
     mods: vowMods(sheet, tuning),
     riteState: sheet.rite
@@ -135,6 +136,16 @@ function legalVerses(session, f) {
     if (f.riteState?.learn && id === f.riteState.learn?.verseId) { out.push(v); continue; }
     if (f.sheet.verses.includes(id)) out.push(v);
   }
+  // A learned verse (Ilvane III) is part of the cast pool even though it is
+  // not on the learner's own sheet (re-test fix F-FIGHT-1: poolForAI already
+  // treated it so — the exported legal list must agree, or the manual UI
+  // would hide a verse the engine accepts).
+  const learned = f.riteState?.learn?.verseId;
+  if (!locked && learned && (f.cooldowns[learned] || 0) <= 0
+    && canPay(f, getVerse(learned).cost, tuning)
+    && !out.some((v) => v.id === learned)) {
+    out.push(getVerse(learned));
+  }
   // A Rite-locked fighter whose locked verse is unaffordable still acts.
   if (locked && out.length === 0) out.push(getVerse(STRIKE.id));
   return out;
@@ -191,12 +202,18 @@ function evalRitesNow(session, f) {
     if (t.change.damageType) f.sheet.damageType = t.change.damageType;
     if (t.change.special === 'learn_most_cast') {
       // T1.8: he learns the verse you have cast MOST OFTEN (slotted only,
-      // Strike excluded per F21). Tie → earliest first-cast of the tied.
+      // Strike excluded per F21). Tie → earliest FIRST-CAST of the tied
+      // (re-test fix F-FIGHT-3: the header comment recorded this rule but
+      // the code implemented loadout order — now it tracks firstCast rounds,
+      // with loadout order as the final determinism anchor).
       const player = f.side === 'a' ? session.fighters.b : session.fighters.a;
-      let best = null; let bestN = -1;
+      let best = null; let bestN = -1; let bestFirst = Infinity;
       for (const id of player.sheet.verses) {
         const n = player.casts[id] || 0;
-        if (n > bestN) { best = id; bestN = n; }
+        const first = player.firstCast?.[id] ?? Infinity;
+        if (n > bestN || (n === bestN && n > 0 && first < bestFirst)) {
+          best = id; bestN = n; bestFirst = first;
+        }
       }
       if (best && bestN > 0) {
         f.riteState.learn = { verseId: best };
@@ -222,6 +239,7 @@ function executeVerse(session, actor, target, verse) {
   // accepts both log(kind, text) and log(kind, side, text)
   const log = (kind, a, b) => session.logLine(kind, actor.side, b === undefined ? a : b);
   actor.casts[verse.id] = (actor.casts[verse.id] || 0) + 1;
+  if (actor.firstCast[verse.id] === undefined) actor.firstCast[verse.id] = session.state.round;
 
   for (const e of verse.effects) {
     if (session.state.over) break;
@@ -275,7 +293,11 @@ function executeVerse(session, actor, target, verse) {
         break;
       }
       case 'bleed+': {
-        const st = applyBleed(target, e.stacks, actor.sheet.stats.mig, actor.mods.bleedCap);
+        // Source's tick bonus + the single-source bleed duration ride along
+        // (F-STATUS-1 / F-STATUS-2: the victim's vow mods never decide the
+        // tick, and tuning.statusTurns.bleed is live config, not dead text).
+        const st = applyBleed(target, e.stacks, actor.sheet.stats.mig, actor.mods.bleedCap,
+          actor.mods.bleedTickBonus || 0, tuning.statusTurns.bleed);
         log('status', actor.side, `${target.sheet.name} bleeds — ${st.stacks} stacks.`);
         break;
       }
@@ -290,7 +312,8 @@ function executeVerse(session, actor, target, verse) {
           potency = tuning.burnBase + tuning.burnCoefWit * wit + (e.potencyBonus || 0) + (actor.mods.burnPotency || 0);
         }
         const turns = tuning.statusTurns.burn + (actor.mods.burnTurns || 0);
-        applyBurn(target, potency, wit, turns);
+        // Kindling flag + side stored at application (F-STATUS-1)
+        applyBurn(target, potency, wit, turns, actor.mods.burnTickResolve || 0, actor.side);
         log('status', actor.side, `${target.sheet.name} burns for ${potency} per turn.`);
         break;
       }
@@ -305,7 +328,9 @@ function executeVerse(session, actor, target, verse) {
         break;
       }
       case 'hush': {
-        applyTimed(target, 'hush', tuning.statusTurns.hush);
+        // The APPLIER's depth travels with the status (F-STATUS-1): a Silence
+        // Cantor's hush starves −3 even off the victim's own sheet.
+        applyTimed(target, 'hush', tuning.statusTurns.hush, actor.mods.hushMod ?? tuning.hushMod);
         log('status', actor.side, `${target.sheet.name} is Hushed.`);
         if (actor.mods.hushApplyResolve) {
           gain(actor, actor.mods.hushApplyResolve, tuning);
@@ -495,8 +520,11 @@ function startTurn(session) {
     },
     (ev) => {
       if (ev.kind === 'resolve') {
-        gain(f, ev.amount, tuning);
-        session.logLine('resolve', f.side, `Kindling: +${ev.amount} Resolve.`);
+        // Kindling resolves to the SOURCE of the burn (F-STATUS-1) — the
+        // event carries the applier's side; fall back to the ticker.
+        const who = ev.side ? session.fighters[ev.side] : f;
+        gain(who, ev.amount, tuning);
+        session.logLine('resolve', who.side, `Kindling: +${ev.amount} Resolve.`);
       }
     }
   );
@@ -534,7 +562,10 @@ function submitChoice(session, verseId) {
   const f = session.state.current || session.pendingChoice;
   if (!f || session.state.over) return { ok: false, error: 'no pending turn' };
   const tuning = session.tuning;
-  const verse = getVerse(verseId);
+  // Unknown ids are a structured rejection like every other invalid input —
+  // not an engine crash (re-test fix F-FIGHT-2; manual input is untrusted).
+  const verse = VERSE_BY_ID.get(verseId);
+  if (!verse) return { ok: false, error: `unknown verse: ${verseId}` };
   if (f.cooldowns[verseId] > 0) return { ok: false, error: 'on cooldown' };
   if (!canPay(f, verse.cost, tuning)) return { ok: false, error: 'not enough Resolve' };
   const isLearned = f.riteState?.learn?.verseId === verseId;

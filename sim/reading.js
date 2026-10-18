@@ -10,6 +10,7 @@
 
 const { deriveSeed, makeMeasures, mulberry32 } = require('../rng/index.js');
 const { createSession, runToCompletion, resultsOf } = require('../engine/fight.js');
+const { CANON } = require('../data/config.js');
 
 /**
  * @param {object} buildA
@@ -21,7 +22,9 @@ const { createSession, runToCompletion, resultsOf } = require('../engine/fight.j
  */
 function quickReading(buildA, buildB, opts) {
   const n = Math.max(1, Math.min(20000, opts.n || 200));
-  const tuning = opts.tuning;
+  // Absent tuning IS canon (ENG-5) — the documented-optional path must not
+  // crash into createSession (re-test finding F-CACHE-2).
+  const tuning = opts.tuning || CANON;
   let winA = 0, winB = 0, roundsSum = 0, dmgSum = 0;
   let minRounds = Infinity, maxRounds = 0;
   const byLength = new Map();

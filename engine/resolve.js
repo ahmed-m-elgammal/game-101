@@ -11,7 +11,10 @@ function resolveAtFightStart(f, isSecondMover, tuning) {
 
 /** Turn-start income, Hush-modified, floored at +1, capped at 10. */
 function resolveGain(f, tuning) {
-  const hush = f.statuses.hush ? (f.mods.hushMod ?? tuning.hushMod) : 0;
+  // Hush depth comes from the APPLIER (stored on the status at application
+  // time; F-STATUS-1). A bare {turns} shape (older saves/tests) falls back
+  // to the canon default depth.
+  const hush = f.statuses.hush ? (f.statuses.hush.mod ?? tuning.hushMod) : 0;
   const gain = Math.max(tuning.hushFloor, tuning.resolveIncome - hush);
   f.resolve = Math.min(tuning.resolveCap, f.resolve + gain);
   return gain;

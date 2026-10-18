@@ -97,10 +97,13 @@ function resolveDamage(state, actor, target, spec, m, tuning) {
 
   raw *= jitter * state.fortune;
 
-  // 6. crit — not affected by fortune
+  // 6. crit — not affected by fortune. The threshold is rounded to the whole
+  // percent the Measure table speaks in (re-test fix F-DAMAGE-1: float noise
+  // like 0.07×100 = 7.000…001 silently inflated every affected crit chance
+  // by one full percentage point).
   const critChance = tuning.critBase + tuning.critPerHst * stats.hst
     + (mods.critBonus || 0) + (spec.critBonus || 0);
-  const crit = m.band(100) < critChance * 100;
+  const crit = m.band(100) < Math.round(critChance * 100);
   if (crit) raw *= mods.critMult || tuning.critMult;
 
   // 7. mitigation — SUMMED, never applied in pieces

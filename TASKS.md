@@ -1,7 +1,7 @@
 # TASKS.md — The Ashen Choir: Development Roadmap
 
 **Project:** The Ashen Choir — a build-driven, text-carried duel RPG with a deterministic async PvP ladder (the Choir Floor).
-**Document status:** v1.0 roadmap · generated 2026-10-18 from the design corpus below · **Phase 0 EXECUTED 2026-10-18** (T0.1–T0.5 done; decisions recorded in `docs/DECISIONS.md`; baseline spec `THE-ASHEN-CHOIR-v1.0.1.md`; schemas, scaffold + CI live) · remaining tasks unchecked (`- [ ]`) · nothing here changes canon — it sequences it.
+**Document status:** v1.0 roadmap · generated 2026-10-18 from the design corpus below · **Phase 0 EXECUTED 2026-10-18** (T0.1–T0.5 done; decisions recorded in `docs/DECISIONS.md`; baseline spec `THE-ASHEN-CHOIR-v1.0.1.md`; schemas, scaffold + CI live) · **Phases 0–2 RE-TESTED 2026-10-18** (N8 in DECISIONS.md: 1,078 new adversarial tests across 7 suites, 9 confirmed bugs found and fixed — vow source-routing, crit-threshold float inflation, Ilvane learn legality/tie-break, preset unlock legality, validator/Reading crash hardening; full suite 1,145/1,145) · remaining tasks unchecked (`- [ ]`) · nothing here changes canon — it sequences it.
 **Implementer model:** every task is written to be handed to Codex (or any engineer) individually, without guessing. Where a task touches an unresolved design decision, the task says so, names the decision ID, and states the recommended default. **Do not implement the decided portion of a blocked task until the decision is recorded as approved** in `docs/DECISIONS.md` (created by T0.1).
 
 ---

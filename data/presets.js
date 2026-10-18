@@ -9,6 +9,8 @@
  * the §13-era example predates the cap reading. Canon-legal equivalent:
  * creation mig+2 hst+2 → MIG 10, HST 9, VIG 6 → 108 HP (the HP assert holds,
  * and MIG is maxed, which is what the example meant). */
+const { VERSE_BY_ID } = require('./verses.js');
+
 const L1_ASHBLADE = {
   name: 'Ashblade (canon example)',
   clazz: 'ashblade',
@@ -62,6 +64,27 @@ const LOADOUTS = {
   hollow_cantor: ['dirge', 'wither_note', 'soul_siphon', 'requiem'],
 };
 
+// Unlock-legality backfill (re-test finding, 2026-10-18): a loadout may only
+// contain verses unlocked by the build's level ([GDD] §6/§13; the same rule
+// harness/archetypes.js records for its own fixtures). The fixed LOADOUTS
+// lists assume L5; at L1–L4 locked verses are replaced by the common fillers
+// in canonical order, deterministically.
+const COMMON_BACKFILL = ['steady_breath', 'second_wind', 'vigils_rest', 'purify', 'stand_fast'];
+
+function legalLoadout(clazz, level) {
+  const prefs = [];
+  for (const id of [...LOADOUTS[clazz], ...COMMON_BACKFILL]) {
+    if (prefs.length >= 4) break;
+    const v = VERSE_BY_ID.get(id);
+    if (!v || v.isStrike) continue;
+    if (v.cls !== 'common' && v.cls !== clazz) continue;
+    if (v.unlockLevel > level) continue;
+    if (prefs.includes(v.id)) continue;
+    prefs.push(v.id);
+  }
+  return prefs;
+}
+
 /**
  * Spend `points` into levelUps following the priority order, hard-capped at
  * 10 per stat (counting base + creation). Deterministic and always legal.
@@ -90,7 +113,7 @@ function mirrorPreset(clazz, level = 5) {
     creation,
     levelUps,
     vow: null,
-    verses: LOADOUTS[clazz],
+    verses: legalLoadout(clazz, level),
     items: [],
   };
 }

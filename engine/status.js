@@ -57,18 +57,23 @@ function hasDebuff(f) {
 }
 
 /**
- * Apply Bleed. Cap 5 (8 with Red Tide). New stacks add; duration refreshes
- * to 3; source MIG retained from the strongest application.
+ * Apply Bleed. Cap 5 (8 with Red Tide). New stacks add; duration refreshes to
+ * 3; source MIG retained from the strongest application. The SOURCE's tick
+ * bonus rides on the status (re-test fix F-STATUS-1: Red Tide's "+1 tick"
+ * belongs to the ashblade who APPLIED the bleed, not the victim's vow mods).
  */
-function applyBleed(f, stacks, srcMIG, cap) {
+function applyBleed(f, stacks, srcMIG, cap, srcTickBonus, turns) {
   const max = cap ?? 5;
+  const tickBonus = srcTickBonus || 0;
+  const dur = turns ?? 3;
   const s = f.statuses.bleed;
   if (!s) {
-    f.statuses.bleed = { stacks: Math.min(max, stacks), srcMIG, turns: 3 };
+    f.statuses.bleed = { stacks: Math.min(max, stacks), srcMIG, tickBonus, turns: dur };
   } else {
     s.stacks = Math.min(max, s.stacks + stacks); // refuses beyond cap (edge case)
     s.srcMIG = Math.max(s.srcMIG, srcMIG);
-    s.turns = 3; // refreshed by new stacks
+    s.tickBonus = Math.max(s.tickBonus || 0, tickBonus); // strongest application stands
+    s.turns = dur; // refreshed by new stacks
   }
   return f.statuses.bleed;
 }
@@ -76,21 +81,31 @@ function applyBleed(f, stacks, srcMIG, cap) {
 /**
  * Apply Burn. Reapplying keeps the HIGHER potency and refreshes duration.
  * potency = base + 0.25 × source WIT (+ vow Slow Ash +1, + Sear bonus).
+ * The SOURCE's Kindling flag and side ride on the status (F-STATUS-1:
+ * "+1 Resolve whenever YOUR Burn ticks" routes to the caster, stored at
+ * application time — the tick happens on the victim's clock).
  */
-function applyBurn(f, potency, srcWIT, turns) {
+function applyBurn(f, potency, srcWIT, turns, srcKindling, srcSide) {
+  const kindling = srcKindling || 0;
   const b = f.statuses.burn;
   if (!b) {
-    f.statuses.burn = { potency, srcWIT, turns };
+    f.statuses.burn = { potency, srcWIT, turns, kindling, srcSide: srcSide ?? null };
   } else {
     b.potency = Math.max(b.potency, potency);
     b.srcWIT = Math.max(b.srcWIT, srcWIT);
     b.turns = turns;
+    b.kindling = Math.max(b.kindling || 0, kindling); // strongest application stands
+    if (b.kindling === kindling && kindling > 0) b.srcSide = srcSide ?? b.srcSide ?? null;
   }
   return f.statuses.burn;
 }
 
-function applyTimed(f, key, turns) {
-  f.statuses[key] = { turns };
+function applyTimed(f, key, turns, mod) {
+  // `mod` carries a source-defined depth for statuses that need one
+  // (Hush: the APPLIER's vow depth — F-STATUS-1). Other timed statuses
+  // ignore it and keep the plain {turns} shape.
+  f.statuses[key] = mod === undefined ? { turns } : { turns, mod };
+  return f.statuses[key];
 }
 
 /**
@@ -177,15 +192,18 @@ function tickAtTurnStart(f, tuning, mods, onTrue, onEvent) {
     const pot = burn.potency;
     events.push({ kind: 'dot', status: 'burn', amount: pot });
     onTrue(pot, 'burn');
-    if (mods.burnTickResolve) onEvent({ kind: 'resolve', amount: mods.burnTickResolve, why: 'Kindling' });
+    // Kindling routes to the SOURCE (stored at application; F-STATUS-1)
+    if (burn.kindling > 0) {
+      onEvent({ kind: 'resolve', amount: burn.kindling, why: 'Kindling', side: burn.srcSide ?? null });
+    }
     burn.turns -= 1;
     if (burn.turns <= 0) f.statuses.burn = null;
   }
 
-  // 2. BLEED — true, stacks × (2 + 0.18 × srcMIG) + vow tick bonus
+  // 2. BLEED — true, stacks × (2 + 0.18 × srcMIG + stored source tick bonus)
   const bleed = f.statuses.bleed;
   if (bleed && bleed.turns > 0) {
-    const amount = bleed.stacks * (tuning.bleedTickBase + tuning.bleedCoefMig * bleed.srcMIG + mods.bleedTickBonus);
+    const amount = bleed.stacks * (tuning.bleedTickBase + tuning.bleedCoefMig * bleed.srcMIG + (bleed.tickBonus || mods.bleedTickBonus || 0));
     events.push({ kind: 'dot', status: 'bleed', amount, stacks: bleed.stacks });
     onTrue(amount, 'bleed');
     bleed.turns -= 1;
@@ -235,11 +253,11 @@ function chips(f) {
   if (s.burn) out.push({ key: 'burn', turns: s.burn.turns, num: s.burn.potency, label: `${s.burn.potency} per turn` });
   if (s.curse) out.push({ key: 'curse', turns: s.curse.turns, num: null, label: '−25% dmg' });
   if (s.fray) out.push({ key: 'fray', turns: s.fray.turns, num: null, label: 'Guard ×0.6' });
-  if (s.hush) out.push({ key: 'hush', turns: s.hush.turns, num: null, label: 'gain −2' });
+  if (s.hush) out.push({ key: 'hush', turns: s.hush.turns, num: null, label: `gain −${s.hush.mod ?? 2}` });
   if (s.brace) out.push({ key: 'brace', turns: s.brace.turns, num: null, label: '+40% mit' });
   if (s.ward) out.push({ key: 'ward', turns: s.ward.turns, num: s.ward.pool, label: `${s.ward.pool} absorb` });
   if (s.thorns) out.push({ key: 'thorns', turns: s.thorns.turns, num: s.thorns.value, label: `${s.thorns.value} thorns` });
-  if (s.stun) out.push({ key: 'stun', turns: s.stun.skipNext ? 1 : tuningTurns(s), num: null, label: s.stun.skipNext ? 'skips next' : `locked ${s.stun.turnsSince}/2` });
+  if (s.stun) out.push({ key: 'stun', turns: s.stun.skipNext ? 1 : tuningTurns(s.stun), num: null, label: s.stun.skipNext ? 'skips next' : `locked ${s.stun.turnsSince}/2` });
   if (s.fatigue) out.push({ key: 'fatigue', turns: 0, num: s.fatigue.amount, label: `${s.fatigue.amount} true` });
   if (s.rite) out.push({ key: 'rite', turns: null, num: null, label: s.rite.name || 'Rite' });
   return out;

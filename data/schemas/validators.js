@@ -178,16 +178,21 @@ const SCHEMAS = {
 // ---------------------------------------------------------------------------
 function crossChecks(kind, obj, ctx, errors) {
   if (kind === 'echoCode') {
-    const sum = STAT_KEYS.reduce((a, k) => a + (obj.alloc[k] || 0), 0);
-    const cap = 4 + 2 * (obj.level - 1);
-    if (sum > cap) errors.push(`alloc: ${sum} points exceeds the L${obj.level} cap of ${cap} (N1: the validator is never loosened for bad examples)`);
+    // Shape errors above already flag a missing alloc/verses/gear — the
+    // cross-checks must degrade to no-ops on those rows, never throw
+    // (a malformed content row is a REJECTION, not a crash).
+    if (obj.alloc) {
+      const sum = STAT_KEYS.reduce((a, k) => a + (obj.alloc[k] || 0), 0);
+      const cap = 4 + 2 * (obj.level - 1);
+      if (sum > cap) errors.push(`alloc: ${sum} points exceeds the L${obj.level} cap of ${cap} (N1: the validator is never loosened for bad examples)`);
+    }
     if (obj.v === 2 && obj.tally && typeof obj.tally === 'object') {
       const tsum = TALLIES.reduce((a, k) => a + (obj.tally[k] || 0), 0);
       if (tsum > 9) errors.push(`tally: ${tsum} choices recorded, campaign holds 9`);
     }
     const reg = ctx || {};
-    if (reg.verseIds) obj.verses.forEach((v) => { if (!reg.verseIds.includes(v)) errors.push(`verses: unknown verse id "${v}"`); });
-    if (reg.itemIds) Object.values(obj.gear).forEach((g) => { if (g && !reg.itemIds.includes(g)) errors.push(`gear: unknown item id "${g}"`); });
+    if (reg.verseIds && Array.isArray(obj.verses)) obj.verses.forEach((v) => { if (!reg.verseIds.includes(v)) errors.push(`verses: unknown verse id "${v}"`); });
+    if (reg.itemIds && obj.gear && typeof obj.gear === 'object') Object.values(obj.gear).forEach((g) => { if (g && !reg.itemIds.includes(g)) errors.push(`gear: unknown item id "${g}"`); });
     if (reg.vowIds && !reg.vowIds.some((v) => v.id === obj.vow)) errors.push(`vow: unknown vow id "${obj.vow}"`);
     if (reg.vowIds) {
       const vow = reg.vowIds.find((v) => v.id === obj.vow);
@@ -195,7 +200,7 @@ function crossChecks(kind, obj, ctx, errors) {
       if (vow && vow.cls && vow.cls !== 'any' && vow.cls !== obj.cls) errors.push(`vow: "${obj.vow}" is not available to class ${obj.cls}`);
     }
   }
-  if (kind === 'enemy') {
+  if (kind === 'enemy' && obj.alloc) {
     const sum = STAT_KEYS.reduce((a, k) => a + (obj.alloc[k] || 0), 0);
     const budget = 33 + 2 * (obj.level - 1); // D7/N5: 27 base + 4 creation + 2 practice — matches every canon row (Bram 33 at L1, Ilvane 51 at L10)
     const override = obj.cls === 'hybrid'; // Mother Bell's declared +4 hybrid override (A6)
