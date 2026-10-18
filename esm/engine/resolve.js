@@ -6,7 +6,15 @@
  */
 
 export function resolveAtFightStart(f, isSecondMover, tuning) {
-  f.resolve = isSecondMover ? tuning.resolveStartSecondMover : tuning.resolveStart;
+  // T6.3 — the §5.3 start Resolve, plus the run-boon / story-vow start bonus
+  // (mods.startResolveBonus: the furnace-fed flag's +1, Twelve Tolls' and
+  // Fixed Point's startBonus — the same +1 pool the marks layer adds on top
+  // of later, cap respected). Second-mover compensation lands first.
+  f.resolve = Math.min(
+    tuning.resolveCap,
+    (isSecondMover ? tuning.resolveStartSecondMover : tuning.resolveStart)
+      + (f.mods && f.mods.startResolveBonus ? f.mods.startResolveBonus : 0),
+  );
 }
 
 /** Turn-start income, Hush-modified, floored at +1, capped at 10. */

@@ -91,6 +91,15 @@ function normalizeInput(input) {
   } else {
     out.gear = { weapon: null, vestment: null, relic: null };
   }
+  // Absent (null/undefined) normalizes to empty; a PRESENT-but-wrong-typed
+  // value is malformed and must be refused with a reason code, never
+  // silently dropped (T4.1: bad data fails loudly — stress-re-test fix).
+  out.versesMalformed = input.verses != null && !Array.isArray(input.verses);
+  out.gearMalformed = input.gear != null && !Array.isArray(input.gear) && typeof input.gear !== 'object';
+  out.itemsMalformed = input.items != null && !Array.isArray(input.items);
+  // T6.2 — campaign bonus stat points (Ch3-Mercy, [01] §4): declared on the
+  // build so the allocation budget extends instead of overflowing.
+  out.bonusPoints = Number.isInteger(input.bonusPoints) && input.bonusPoints > 0 ? input.bonusPoints : 0;
   return out;
 }
 
@@ -114,7 +123,7 @@ export function assembleBuild(input, tuning = CANON) {
   if (errors.length) return { ok: false, errors }; // further checks need these
 
   // -- allocation ----------------------------------------------------- §12.6, N1
-  const budget = statBudget(norm.level);
+  const budget = statBudget(norm.level) + norm.bonusPoints; // T6.2: the free stat point rides outside the level economy
   let alloc = null;
   if (!norm.alloc) {
     add('ALLOC_SHAPE', 'alloc', 'alloc (or creation/levelUps) is required');
@@ -147,6 +156,10 @@ export function assembleBuild(input, tuning = CANON) {
 
   // -- verses ------------------------------------------------------- §6, §6.1–6.5
   const verses = [];
+  if (norm.versesMalformed) {
+    add('VERSE_SHAPE', 'verses', 'verses must be an array of verse ids (absent means none)');
+  }
+  if (!norm.versesMalformed) {
   if (norm.verses.length > 4) {
     add('VERSE_SLOT_LIMIT', 'verses', `${norm.verses.length} slotted — the Hymnal holds 4 ordered slots (Strike is implicit)`);
   }
@@ -166,6 +179,7 @@ export function assembleBuild(input, tuning = CANON) {
     if (seen.has(id)) { add('VERSE_DUP', 'verses', `"${id}" slotted twice — one slot each`); continue; }
     seen.add(id);
     verses.push(id);
+  }
   }
 
   // -- vow ------------------------------------------------------- §7.1, §7.2
@@ -193,6 +207,10 @@ export function assembleBuild(input, tuning = CANON) {
   // (each slot holds one id by shape, so a duplicate cannot occupy two
   // legal slots — mis-slotting is the only reachable gear error)
   const items = [];
+  if (norm.gearMalformed || norm.itemsMalformed) {
+    add('GEAR_SHAPE', 'gear', 'gear must be a slot object or a [weapon, vestment, relic] array');
+  }
+  if (!norm.gearMalformed && !norm.itemsMalformed) {
   for (const slot of GEAR_SLOTS) {
     const id = norm.gear[slot];
     if (id == null) continue;
@@ -200,6 +218,7 @@ export function assembleBuild(input, tuning = CANON) {
     if (!row) { add('GEAR_UNKNOWN', `gear.${slot}`, `unknown item "${id}"`); continue; }
     if (row.slot !== slot) { add('GEAR_SLOT', `gear.${slot}`, `"${id}" is a ${row.slot}, not a ${slot}`); continue; }
     items.push(id);
+  }
   }
 
   // -- doctrine ----------------------------------------------------- §12.2
@@ -249,6 +268,9 @@ export function assembleBuild(input, tuning = CANON) {
     items,
     doctrine: norm.doctrine,
     rite: norm.rite,
+    // T6.2: campaign bonus points ride the assembled build so the fight
+    // path's validateAlloc (fighter.js) sees the same declared allowance.
+    bonusPoints: norm.bonusPoints,
   };
   return { ok: true, build, errors: [] };
 }

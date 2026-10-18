@@ -103,7 +103,13 @@ export function scriptedPick(session, f, s, ctx) {
       if (!repeat) f.sheet.script.shift();
       return { id };
     }
-    if (!repeat) f.sheet.script.shift();
+    // Illegal entries drop and the scorer takes over — but only on REAL
+    // scripted turns. A posture-gated (setup/fold) turn is not a scripted
+    // turn (the same deference the triggers get above): the queue rides
+    // over it untouched instead of draining silently without casting.
+    // (Stress-re-test fix; no canon row combines queue + posture, so no
+    // pinned fight changes.)
+    if (!repeat && !(restrictToSetup || folded)) f.sheet.script.shift();
   }
   return null;
 }
@@ -134,4 +140,4 @@ export function compileScript(row) {
 }
 
 
-export { scriptedPick, compileScript, triggerFired };
+

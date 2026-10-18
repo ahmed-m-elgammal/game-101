@@ -52,6 +52,17 @@ const JS_KINDS = { verses: '../data/verses.js', vows: '../data/vows.js', items: 
 // boot, so the counted rows are the validated rows).
 const JS_COUNTERS = {
   campaignDuels() { return require('../data/enemies.js').ENEMIES.length; },
+  // T6.1: the campaign's ten shrines (F24) live in story/model.js — nine
+  // chapter shrine nodes + the crypt's hidden tenth.
+  shrines() {
+    const M = require('../story/model.js');
+    return M.CHAPTERS.filter((h) => h.hasShrine && h.shrine).length + 1;
+  },
+  // T6.1: the nine story choices as data (eight §3 choices + the final node).
+  storyChoices() {
+    const M = require('../story/model.js');
+    return M.CHOICES.length + 1;
+  },
   signatureVerbs() { return Object.keys(require('../data/signature-verbs.js').SIGNATURE_VERBS).length; },
   namedEchoes() { return require('../data/named-echoes.js').NAMED_ECHOES.length; },
   riteUsers() { return require('../data/named-echoes.js').RITE_USERS.length; },

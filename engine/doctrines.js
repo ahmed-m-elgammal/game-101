@@ -254,5 +254,4 @@ function chooseVerseByDoctrine(actor, target, state, m, tuning, legalVersesOf) {
 
 
 
-
 module.exports = { hymnalOf, predatorOf, bulwarkOf, strippedVis, punishScore, chooseVerseByDoctrine, PREDATOR_DEFEND_BELOW_HP, BULWARK_DEFEND_BELOW_HP };

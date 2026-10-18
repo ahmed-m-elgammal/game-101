@@ -84,6 +84,14 @@ export function resolveDamage(state, actor, target, spec, m, tuning) {
   if (mods.shadePerDebuff && spec.type === 'shade') raw *= 1 + mods.shadePerDebuff * distinctDebuffs(target);
   raw *= 1 + (mods.damageBonus || 0); // vows flat hook (Phase 3)
 
+  // §10.11 — The Dampened Bell (assist mode, D9/02 R3c): a fighter on a
+  // dampened sheet deals −15% damage. Part of the raw computation, ahead of
+  // the §5.4 single rounding; the flag is set by the campaign layer after a
+  // fourth loss on the same fight and marked on the run's profile. It
+  // disables nothing (all endings, rewards, the Floor, the titles stay
+  // reachable) and never travels — exported Echoes carry full stat lines.
+  if (actor.sheet.dampened) raw *= 0.85;
+
   // T4.5 marks — fixed order, all float, all zero when no gear is present
   raw *= 1 + (mods.markDamagePct || 0);                    // Tithe-Collector's Ledger +10%
   const hpFrac = target.maxHp > 0 ? target.hp / target.maxHp : 0;

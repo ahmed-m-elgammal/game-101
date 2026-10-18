@@ -93,5 +93,4 @@ function recordCorvaneLoss(runState) {
 
 
 
-
 module.exports = { lockCounterbuild, isLocked, resolveCorvaneBuild, recordCorvaneLoss };

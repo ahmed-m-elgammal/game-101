@@ -409,6 +409,29 @@ function spawnGuard(session, boss, bodyId) {
 }
 
 /**
+ * T6.4 — campaign allies (the Turned Pour bell per [02] R7d; Sister Oren
+ * sent up). The SAME mechanics as the boss guards — interpose, status ticks,
+ * one signature action per round at the top of the round (the round loop
+ * walks owner.guards for both sides) — on the player's side. `isAlly` marks
+ * the body for narration; the interpose check reads the guards list, not
+ * the flag. Rite-users and curseImmune stay data: the Turned Pour's build
+ * carries special.debuffImmune ['curse'], which statusBlocked already
+ * enforces; opts.thorns seeds the R7d startThorns as a persistent start state.
+ */
+export function spawnAlly(session, owner, build, opts = {}) {
+  if (!owner || !owner.sheet) throw new Error('spawnAlly: owner fighter required');
+  const sheet = buildSheet(build, session.tuning);
+  const ally = toRuntime(sheet, owner.side, session.tuning);
+  ally.isGuard = true; // the interpose + once-per-round mechanics are the guards'
+  ally.isAlly = true;  // narration marker (log lines read "fights beside")
+  ally.opponent = owner.opponent;
+  if (opts.thorns) applyThorns(ally, opts.thorns, 999); // a fight ends long before turn 999 (§5.6 D8)
+  owner.guards.push(ally);
+  session.logLine('info', owner.side, `${ally.sheet.name} fights beside ${owner.sheet.name}.`);
+  return ally;
+}
+
+/**
  * Execute one verse: the effect op-code interpreter. Reads verse data,
  * never mutates it. Consumes the Measure stream in the canonical order.
  */

@@ -40,4 +40,4 @@ export function compareDoctrines(buildA, buildB, seeds) {
 }
 
 
-export { compareDoctrines };
+

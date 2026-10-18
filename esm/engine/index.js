@@ -12,7 +12,7 @@ export * from './fatigue.js';
 export * from './ai.js';
 export {
   createSession, legalVerses, submitChoice, step, runToCompletion,
-  runFight, resultsOf, ledgerVerdict, executeVerse,
+  runFight, resultsOf, ledgerVerdict, executeVerse, spawnAlly,
 } from './fight.js';
 export { evalRites, temperatureState, temperatureDefenseMult } from './rites.js';
 export { CANON } from '../data/config.js';

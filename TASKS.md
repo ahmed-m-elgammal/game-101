@@ -1136,13 +1136,15 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 
 # Phase 6 — Campaign Story & Systems
 
+> **Progress note (2026-10-18):** T6.1–T6.4 complete — the campaign walks end to end (create → Ch1–Ch9 → final choice → ending), 1,587/1,587 tests green (106 new: story 25, act1 26, act2 41, act3 14). The remaining Phase-6 tasks (T6.5 the choice/reward wiring completion incl. the conditional story-vow combat behaviors, T6.6/T6.7 the epilogue reveal + endings content, T6.8 Unmake gate sims, T6.9+ XP decision gates, T6.10–T6.13 objectives/vendor/rites/shrine UX) build directly on the model/run-state/director triple. **N14** (the walker's wall map: Cantor@Sedge absolute, Witch@Corvane, Warden@Ysolde) awaits the owner's tuning wave — see DECISIONS.md §9.
+
 **Purpose:** `[GDD] §15.4` Phases 4–6: the nine-chapter campaign as data + the systems that surround it — XP/level-sync, the loss loop, shrines, the memory market, optional objectives, Maren, and all ten endings. Content rule from `[GDD] §17`: branches are additive; nothing canon is rewritten.
 **Phase completion criteria:** start-to-finish playable campaign for all four classes; every ending reachable and its epilogue matches the tally (`[GDD] §15.4` Ph6 "done when"); XP walk lands every band (T2.5 green on real data); the Ch4 branch visibly changes Ch6's fight list.
 
 ---
 
 ### T6.1 — Story data model & run state
-- [ ] T6.1 done
+- [x] T6.1 done (2026-10-18 — `story/model.js`: the 9 chapter nodes verbatim (§3 prose, act bosses, level bands, duel wiring asserted against CHAPTER_FIGHTS), 8 story choices × 3 options + the bespoke final node (three canon paths + the conditional fourth; not a `choice`-kind row — the endings are not tallies and the scene kind caps at 3), the 14-flag registry (typed, documented, consumers named; unknown flags refuse), ENDINGS + the Ch4→Ch6 ally arithmetic (4/2/0). Every chapter/scene/choice row validates against the frozen T0.3 kinds at load; the crypt's hidden tenth shrine exists as data (F24; the inventory counts 10). `story/runState.js`: the plain-JSON run object — hidden tallies (the save holds the truth; `visibleRunStateOf` strips them and the architecture test locks both halves), XP payment with the D2 75% over-level rate, level-ups that never bank a point, registry-typed flags, choices/rewards/vow-gates (§7.2 gates are the vows', never the chapter's — unslotted recorded), memory-sold marks (D13/D14: sellMemory keeps tally+rewards and closes Unmake; the baton is not for sale), Unmake inputs (lostToOwnEcho counter + the provisional Burn-verse counter), toSaveState conforming to the frozen saveState schema (rejects chapter 0 — the save opens with Chapter 1) with byte-identical round-trips)
 
 **Goal:** chapters/scenes/choices/tallies/endings as data (per `[GDD] §15`'s `story` module), plus the run-state object every system reads: level/XP, chapter progress, tallies, choices made, items, flags (Corvane spared, Ysolde's fate, pour turned, Oren sent up), re-bind rights, memory-sold marks, Unmake eligibility inputs.
 **Implementation:**
@@ -1160,7 +1162,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T6.2 — Act I implementation (Chapters 1–3, Duels 1–7)
-- [ ] T6.2 done
+- [x] T6.2 done (2026-10-18 — `story/director.js` walks Acts I–III: duels in roster order with re-bells per §10.11 (free, unlimited; the §13 reshape ladder rotates assignment order + verse window between attempts), XP exactly once per run, fixed loot through the sources registry (per-fight boss rows + per-chapter completion rows), choices after the fights, the +10 completion once. Act I verified: 3 paths × 3 classes automated walkthroughs; the A2/F26 mapping player-visible; Ch3's Tuning Fork / +1 free stat point (the build declares bonusPoints — validateAlloc's budget extends; the point is never banked) / Twin Ledger (D3; the earn consumed by store/twin-ledger). [01] R1 walk reproduces on real data (56/145/291; cumulative 1157 = the N11 figure). Post-act state per §3: class, vow, 3 equipped items, 4-verse loadout, floor_unlocked. NEW FINDING **N14** (DECISIONS §9): Duel 2 (Sedge) walls the Hollow Cantor absolutely — 0/60 all harness archetypes, 0/100 every L2-legal kit incl. the commons, 0/40 the full sanction ladder WITH the §10.11 Dampened Bell (implemented this phase: engine resolveDamage −15% out, enemy HP −15%, permanent profile mark, never travels); even Duel 1 costs the Cantor 6 re-bells + the assist. Routed to the owner's tuning wave — content numbers are canon (§17)
 
 **Goal:** The Waking, playable end to end: crypt waking prose, Bram and Sedge, the Salt Road and its gate choice, the Drowned Nave with Pell's mid-fight theft, First Vespers two-phase boss, the three Ch3 choices with their (post-D3) rewards, and the Choir Floor unlock gate.
 **Implementation:**
@@ -1181,7 +1183,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T6.3 — Act II implementation (Chapters 4–6, Duels 8–14, branching)
-- [ ] T6.3 done
+- [x] T6.3 done (2026-10-18 — the full 3×3×3 branch matrix (Ch4 × Ch5 × Ch6) lands exactly its flags/vows/items per §3 + the sources registry; the Ch4→Ch6 fight-list contract is regression-locked (whole 4 / split 2 / fractured 0 allies derived from the recorded choice, stable across re-entry; the §9.2 duel rows themselves never move — no invented sheets); the D11 lock fires at Chapter 5's START via walkChapter (the lock is THE PICK); Corvane resolves through the frozen lock, losses record the reveal once; Cassock's Gate key is a flag, distinct from the Ch8 relic; the furnace boon (+1 start Resolve) is engine-live via build.startResolveBonus and never stacks with the Twelve Tolls vow line (same source); vendor_open at the Act II gate for T6.12. **N14 extended**: the Corvane counterbuild walls the Cinder Witch (0/40 on her seed-44 chain, 0/60 fast-staged at L6/L7) and Ysolde walls the Gravewarden (40/40 seed chains end in Act I or at Duel 9) — the Ashblade is the only class with a verified full Act II passage; all routed to the owner's tuning wave
 
 **Goal:** The Turning: Ysolde's branch (the first choice that visibly changes Chapter 6's fight list), the Wick Market and Corvane's counter-duel, the Bellfoundry with Halbrey's Rite intro, Mother Bell's temperature fight, and the furnace choice with its three permanent consequences.
 **Implementation:**
@@ -1201,7 +1203,7 @@ The full register is `[00] §0.4` (D1–D32). Condensed engineering view:
 ---
 
 ### T6.4 — Act III implementation (Chapters 7–9, Duels 15–21, finale)
-- [ ] T6.4 done
+- [x] T6.4 done (2026-10-18 — Ch7/Ch8 reward paths land (Fixed Point/No Paper/Kept Name per D30; Oren's Post per D4 + the oren_sent_up flag; Vigil's Ring row; Long Walk Down) with §7.2 gates verified per class; the Duel 21 ally integration is the R7d pattern end to end: `spawnAlly` in engine/fight.js (the guard mechanics — interpose, once-per-round, status ticks — on the player's side), the Turned Pour builds through the declared budgetOverride path with Thorns 6 + curseImmune via special.debuffImmune (statusBlocked already enforces it), Oren allies with her published sheet (172 HP, regen 4) — data, not design; the variant is real (same seed with/without the ally → a different fight). Ilvane's three phases play through the walker; Duel 20's no-debuff guarantee asserted at the data level AND in the fight log; D1 verified — L9 at the Bellmouth, L10 on Ilvane's corpse, cumulative 1157; the final choice reaches all three endings with the hidden tally recorded, and the fourth thing never renders unmet (the hook takes the T6.8 gate; the default refuses; a stub-open gate records ending_unmake and ends the run)
 
 **Goal:** The Choir: the Orrery reveal, Yune's mimic fight, First Movement, the Lower Silence descent with Oren, and the Bellmouth — Unbound Chorus, Ilvane's Second, and the three-phase Pale Cantor, ending in the final choice.
 **Implementation:**

@@ -129,6 +129,13 @@ function canReshape(state, context) {
 }
 
 /**
+ * Reshape the ACTIVE loadout (re-slot verses, swap vows, reassign stats,
+ * regear) — free, unlimited (§13). `patch` is a partial build in the T5.1
+ * dialect; the merged loadout must still assemble legally or the reshape is
+ * refused with the validator's reason codes (the Hymnal can never hold an
+ * illegal build).
+ */
+/**
  * Translate a patch's `gear` field into the assembled build's `items`
  * dialect. The merged loadout carries BOTH keys, and normalizeInput reads
  * `items` first — without this translation a `gear`-object (or `gear`
@@ -149,14 +156,6 @@ function patchIntoItems(current, patch) {
   delete p.gear;
   return p;
 }
-
-/**
- * Reshape the ACTIVE loadout (re-slot verses, swap vows, reassign stats,
- * regear) — free, unlimited (§13). `patch` is a partial build in the T5.1
- * dialect; the merged loadout must still assemble legally or the reshape is
- * refused with the validator's reason codes (the Hymnal can never hold an
- * illegal build).
- */
 
 function reshape(state, patch, context) {
   if (!canReshape(state, context)) {
@@ -304,4 +303,4 @@ function importSave(json, opts = {}) {
 }
 
 
-module.exports = { createLoadoutState, canReshape, reshape, rewind, loadoutOf, bindEcho, boundEcho, ledgerFor, exportSave, importSave, earnedStoryVows, certifiedAllowances, RESHAPE_CONTEXTS, LEDGER_KINDS };
+module.exports = { earnedStoryVows, certifiedAllowances, createLoadoutState, canReshape, reshape, rewind, loadoutOf, bindEcho, boundEcho, ledgerFor, exportSave, importSave, RESHAPE_CONTEXTS, LEDGER_KINDS };

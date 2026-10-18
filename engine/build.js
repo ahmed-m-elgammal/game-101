@@ -97,6 +97,9 @@ function normalizeInput(input) {
   out.versesMalformed = input.verses != null && !Array.isArray(input.verses);
   out.gearMalformed = input.gear != null && !Array.isArray(input.gear) && typeof input.gear !== 'object';
   out.itemsMalformed = input.items != null && !Array.isArray(input.items);
+  // T6.2 — campaign bonus stat points (Ch3-Mercy, [01] §4): declared on the
+  // build so the allocation budget extends instead of overflowing.
+  out.bonusPoints = Number.isInteger(input.bonusPoints) && input.bonusPoints > 0 ? input.bonusPoints : 0;
   return out;
 }
 
@@ -120,7 +123,7 @@ function assembleBuild(input, tuning = CANON) {
   if (errors.length) return { ok: false, errors }; // further checks need these
 
   // -- allocation ----------------------------------------------------- §12.6, N1
-  const budget = statBudget(norm.level);
+  const budget = statBudget(norm.level) + norm.bonusPoints; // T6.2: the free stat point rides outside the level economy
   let alloc = null;
   if (!norm.alloc) {
     add('ALLOC_SHAPE', 'alloc', 'alloc (or creation/levelUps) is required');
@@ -265,6 +268,9 @@ function assembleBuild(input, tuning = CANON) {
     items,
     doctrine: norm.doctrine,
     rite: norm.rite,
+    // T6.2: campaign bonus points ride the assembled build so the fight
+    // path's validateAlloc (fighter.js) sees the same declared allowance.
+    bonusPoints: norm.bonusPoints,
   };
   return { ok: true, build, errors: [] };
 }

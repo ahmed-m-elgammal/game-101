@@ -95,12 +95,19 @@ export function chapterCompletionXp() {
 
 /** Stat points: 4 at creation, +2 per level (§13). */
 export function statPointsForLevel(level) {
-  if (level < 1 || level > LEVEL_CAP) throw new Error(`level out of range: ${level}`);
+  // T4.1 loud-failure contract: NaN slips both < and > comparisons, so a
+  // bare range check would silently grant `NaN` points — corruption, not
+  // data. Non-integer levels are equally out of contract (§13 grants land
+  // on level-up events only).
+  if (!Number.isInteger(level) || level < 1 || level > LEVEL_CAP) {
+    throw new Error(`level out of range: ${level}`);
+  }
   return 4 + 2 * (level - 1);
 }
 
 /** Level for a cumulative XP value (thresholds are "XP to reach level n+1"). */
 export function levelForXp(xp) {
+  if (!Number.isFinite(xp)) throw new Error(`xp must be a finite number (got ${xp})`);
   let level = 1;
   for (let i = 1; i < XP_THRESHOLDS.length; i++) {
     if (xp >= XP_THRESHOLDS[i]) level = i + 1;

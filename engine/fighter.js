@@ -16,6 +16,7 @@
  * }
  */
 const { CLASSES, STAT_KEYS } = require('../data/classes.js');
+const { VOW_BY_ID } = require('../data/vows.js'); // T6.2–T6.4: the story-vow mod bridge
 
 /** budget(L) = 33 + 2(L−1). D7/N5: 27 base + 4 creation + 2 practice + 2×(L−1). */
 function budgetFor(level, tuning) {
@@ -33,7 +34,12 @@ function validateAlloc(build, tuning) {
   const creationSum = STAT_KEYS.reduce((s, k) => s + (build.creation?.[k] || 0), 0);
   const levelSum = STAT_KEYS.reduce((s, k) => s + (build.levelUps?.[k] || 0), 0);
   if (creationSum !== tuning.creationPoints) errors.push(`creation must total ${tuning.creationPoints} (got ${creationSum})`);
-  const expect = tuning.pointsPerLevel * (build.level - 1);
+  // T6.2 — the Ch3-Mercy free stat point ([01] §4): campaign rewards may
+  // grant points BEYOND the level economy. They ride the same sums, the cap
+  // still applies, and the build declares them so "every point assigned"
+  // stays checkable (never banked).
+  const bonus = Number.isInteger(build.bonusPoints) && build.bonusPoints > 0 ? build.bonusPoints : 0;
+  const expect = tuning.pointsPerLevel * (build.level - 1) + bonus;
   if (levelSum !== expect) errors.push(`level-ups must total ${expect} (got ${levelSum})`);
   for (const k of STAT_KEYS) {
     const total = base[k] + (build.creation?.[k] || 0) + (build.levelUps?.[k] || 0);
@@ -110,6 +116,7 @@ function vowMods(sheet, tuning) {
     shadePerDebuff: 0,
     hushMod: tuning.hushMod,
     hushApplyResolve: 0,
+    startResolveBonus: 0, // T6.3: story-vow resolve.startBonus + the furnace-fed run boon
   };
   switch (sheet.vow) {
     case 'red_tide': mods.bleedCap = tuning.bleedCapRedTide; mods.bleedTickBonus = v.redTideTickBonus; break;
@@ -126,6 +133,25 @@ function vowMods(sheet, tuning) {
     case 'silence': mods.hushMod = tuning.hushModSilence; mods.hushApplyResolve = v.silenceApplyResolve; break;
     default: break;
   }
+  // T6.2–T6.4 bridge — the MOD-shaped story-vow effects (data/vows.js rows):
+  // they ride the same engine paths as their class-vow counterparts. The
+  // conditional combat behaviors (Warden's Oath, Grey Duelist, Ledger's
+  // Price, Oren's Post, ...) land with T6.5's reward wiring — recorded in
+  // DECISIONS.md §7, exactly as the task plan assigns them.
+  const sv = sheet.vow && VOW_BY_ID.get(sheet.vow);
+  if (sv && sv.kind === 'story') {
+    for (const e of sv.effects || []) {
+      if (e.op === 'resolve' && e.startBonus) mods.startResolveBonus = (mods.startResolveBonus || 0) + e.startBonus;
+      if (e.op === 'dot_mod' && e.kind === 'burn' && e.potencyBonus) mods.burnPotency += e.potencyBonus;
+      if (e.op === 'conditional' && e.curseTurns) mods.curseTurns += e.curseTurns;
+      if (e.op === 'conditional' && e.hushMod) mods.hushMod = Math.max(mods.hushMod, e.hushMod); // the marks-merge convention
+    }
+  }
+  // Run-boon carrier (T6.3, furnace_fed): +1 starting Resolve for every
+  // class. The campaign director sets build.startResolveBonus; the vow line
+  // and the flag are the SAME source and never stack (the director zeroes
+  // the boon when Twelve Tolls itself is slotted). Marks stay on top of both.
+  if (sheet.startResolveBonus) mods.startResolveBonus = (mods.startResolveBonus || 0) + sheet.startResolveBonus;
   return mods;
 }
 
@@ -177,6 +203,13 @@ function buildSheet(build, tuning) {
     items: build.items || [],
     isEnemy: !!build.isEnemy,
     rite: build.rite || null,
+    // T6.3 run-boon carrier: the campaign director sets build.startResolveBonus
+    // (the furnace-fed flag). vowMods reads it; the sheet carries it so the
+    // JSON round-trip keeps the fight reproducible.
+    startResolveBonus: build.startResolveBonus || 0,
+    // §10.11 — the Dampened Bell (assist mode): the campaign layer sets it on
+    // an enemy sheet after a fourth loss; resolveDamage reads it (−15% out).
+    dampened: !!build.dampened,
     // T5.1: the Echo's doctrine rides the sheet (§12.1 — a frozen copy of a
     // build includes the doctrine). Inert to the fight math until T5.5
     // layers the doctrine behaviors over the T5.4 shared AI rules.

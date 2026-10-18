@@ -252,4 +252,3 @@ export function chooseVerseByDoctrine(actor, target, state, m, tuning, legalVers
 }
 
 
-export { chooseVerseByDoctrine, punishScore, hymnalOf, predatorOf, bulwarkOf, strippedVis, PREDATOR_DEFEND_BELOW_HP, BULWARK_DEFEND_BELOW_HP };
