@@ -34,6 +34,7 @@ const { corvaneCounterbuild, corvaneSheet, buildStringOf } = require('../data/co
  */
 function lockCounterbuild(runState, playerBuild, chapter = 5) {
   if (!runState || typeof runState !== 'object') throw new Error('runState required');
+  if (!playerBuild || typeof playerBuild !== 'object') throw new Error('playerBuild required');
   if (runState.corvane && runState.corvane.locked) return runState.corvane; // D11: already locked
   const pick = corvaneCounterbuild(playerBuild, chapter);
   const record = {
